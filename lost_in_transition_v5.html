@@ -1,0 +1,396 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Lost in Transition — Simulation</title>
+<link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@400;500&family=DM+Sans:wght@400;500&display=swap" rel="stylesheet">
+<style>
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+:root{
+  --cr:#8B0000;--pk:#F2A7B8;--sf:#FFF5F7;
+  --br:#4A2E1A;--bt:#B08060;--sk:#A8C4CC;--skd:#3A6B78;
+  --wh:#ffffff;
+}
+body{font-family:'DM Sans',sans-serif;background:var(--wh);color:var(--br);min-height:100vh}
+.wrap{max-width:580px;margin:0 auto;padding:2.5rem 1.75rem 6rem}
+
+/* header */
+.hd-eyebrow{font-size:10px;text-transform:uppercase;letter-spacing:.1em;color:var(--bt);margin-bottom:.35rem}
+.hd-title{font-family:'Playfair Display',serif;font-size:26px;font-weight:500;color:var(--br);margin-bottom:.35rem}
+.hd-sub{font-size:13px;color:var(--bt);line-height:1.6;padding-bottom:1.5rem;border-bottom:.5px solid var(--pk);margin-bottom:1.75rem}
+
+/* progress */
+.prog{display:flex;gap:4px;margin-bottom:.4rem}
+.pip{height:3px;flex:1;background:var(--pk);border-radius:2px;transition:background .4s}
+.pip.done{background:var(--bt)}
+.pip.active{background:var(--cr)}
+.prog-lbl{font-size:10px;color:var(--bt);text-transform:uppercase;letter-spacing:.07em;margin-bottom:1.5rem}
+
+/* topic tracker */
+.topics-lbl{font-size:10px;text-transform:uppercase;letter-spacing:.08em;color:var(--bt);margin-bottom:.5rem}
+.topics{display:flex;gap:6px;flex-wrap:wrap;margin-bottom:1.75rem;min-height:26px}
+.topic{font-size:11px;padding:3px 10px;border-radius:20px;border:.5px solid var(--pk);color:var(--pk);background:var(--wh);transition:all .4s}
+.topic.earned{color:var(--skd);border-color:var(--sk);background:rgba(168,196,204,0.15)}
+
+/* scene */
+.s-eyebrow{font-size:10px;text-transform:uppercase;letter-spacing:.08em;color:var(--bt);margin-bottom:.4rem}
+.s-title{font-family:'Playfair Display',serif;font-size:20px;font-weight:500;color:var(--br);margin-bottom:.65rem;line-height:1.3}
+.s-body{font-size:14px;color:var(--bt);line-height:1.7;margin-bottom:1.25rem}
+
+/* choices */
+.q-text{font-size:13.5px;font-weight:500;color:var(--br);margin-bottom:.65rem}
+.choices{display:flex;flex-direction:column;gap:8px}
+.c-btn{background:var(--wh);border:.5px solid var(--pk);border-radius:8px;padding:.75rem 1rem;font-size:13.5px;font-family:'DM Sans',sans-serif;color:var(--br);cursor:pointer;text-align:left;transition:all .15s;line-height:1.5;width:100%}
+.c-btn:hover{background:var(--sf);border-color:var(--bt)}
+.c-btn.selected{border-color:var(--cr);background:var(--sf)}
+.c-btn:disabled{opacity:.4;cursor:default}
+
+.reveal-body{font-size:13.5px;color:var(--bt);line-height:1.7;margin-top:1rem;padding-top:1rem;border-top:.5px solid var(--pk)}
+
+.next-btn{background:var(--cr);color:var(--wh);border:none;border-radius:8px;padding:.65rem 1.25rem;font-size:13px;font-family:'DM Sans',sans-serif;cursor:pointer;margin-top:1rem;display:block;transition:opacity .15s}
+.next-btn:hover{opacity:.85}
+
+/* end */
+.end-badge{display:inline-block;font-size:10px;text-transform:uppercase;letter-spacing:.1em;padding:3px 10px;border-radius:20px;margin-bottom:.75rem;font-weight:500}
+.end-badge.no{background:rgba(139,0,0,.1);color:var(--cr)}
+.end-badge.yes{background:rgba(58,107,120,.1);color:var(--skd)}
+.end-title{font-family:'Playfair Display',serif;font-size:20px;font-weight:500;color:var(--br);margin-bottom:.65rem;line-height:1.3}
+.end-body{font-size:13.5px;color:var(--bt);line-height:1.75;margin-bottom:1.5rem}
+
+.end-topics-lbl{font-size:10px;text-transform:uppercase;letter-spacing:.08em;color:var(--bt);margin-bottom:.5rem}
+.end-topics{display:flex;gap:6px;flex-wrap:wrap;margin-bottom:1.5rem}
+.end-topic{font-size:11px;padding:3px 10px;border-radius:20px;border:.5px solid var(--pk)}
+.end-topic.earned{color:var(--skd);border-color:var(--sk);background:rgba(168,196,204,0.15)}
+.end-topic.missed{color:var(--cr);border-color:var(--cr);background:rgba(139,0,0,.05);text-decoration:line-through}
+
+.stat-row{display:grid;grid-template-columns:1fr 1fr;gap:9px;margin-bottom:1.5rem}
+.stat-box{border:.5px solid var(--pk);border-radius:8px;padding:.85rem;background:var(--sf)}
+.stat-n{font-family:'Playfair Display',serif;font-size:26px;font-weight:500;margin-bottom:2px}
+.stat-n.red{color:var(--cr)}.stat-n.blue{color:var(--skd)}
+.stat-l{font-size:11px;color:var(--bt);line-height:1.4}
+
+.policy-box{border:.5px solid var(--pk);border-radius:8px;padding:1rem 1.1rem;background:var(--sf);font-size:12.5px;color:var(--bt);line-height:1.65;margin-bottom:1.25rem}
+.policy-box strong{color:var(--br);font-weight:500}
+
+.gap-row{margin-bottom:.5rem;font-size:12px;color:var(--bt);padding-left:.75rem;border-left:.5px solid var(--pk);line-height:1.5}
+.gap-row span{color:var(--cr);font-style:italic}
+
+.restart-btn{background:transparent;border:.5px solid var(--pk);border-radius:8px;padding:.6rem 1.1rem;font-size:13px;font-family:'DM Sans',sans-serif;color:var(--br);cursor:pointer;transition:background .15s;margin-top:.25rem}
+.restart-btn:hover{background:var(--sf)}
+</style>
+</head>
+<body>
+<div class="wrap">
+  <div class="hd-eyebrow">Hertie School · MPP Thesis · 2026</div>
+  <div class="hd-title">Lost in Transition</div>
+  <div class="hd-sub">You are 15. Navigate six institutional transitions. Collect what comprehensive sex education should include.</div>
+
+  <div class="prog" id="prog"></div>
+  <div class="prog-lbl" id="prog-lbl"></div>
+
+  <div class="topics-lbl">Topics collected</div>
+  <div class="topics" id="topics"></div>
+
+  <div id="content"></div>
+</div>
+
+<script>
+// All 9 topics from the Healthy and Safe Students Act (S6901/A7496)
+const ALL_TOPICS = [
+  "Consent",
+  "Bodily autonomy",
+  "Healthy relationships",
+  "STI prevention",
+  "Contraception",
+  "Pregnancy",
+  "LGBTQ+ identity",
+  "Substance use & sex",
+  "Tech & relationships",
+];
+
+// ── STATE ──────────────────────────────────────────────────
+let earned = new Set();
+let gapsHit = [];
+let gotInformal = false;
+let choiceCount = 0;
+let currentId = "s1";
+
+// ── NODES ─────────────────────────────────────────────────
+// Each node: stage, eyebrow, title, body,
+// earn?:[topics], gap?, question?, choices:[{text,next,earn?,gap?,reveal?}], autoNext?
+
+const N = {
+
+  // ══ STAGE 1 — SCHOOL ══════════════════════════════════
+  s1:{
+    stage:1, eyebrow:"Stage 1 of 6 — School",
+    title:"Monday morning, Brooklyn",
+    body:"You're 15. Health class. The gym teacher is covering — the licensed health teacher left in December and was never replaced.",
+    question:"What happens in class?",
+    choices:[
+      {text:"She works through the handout. Consent covered. STIs started before the bell.", next:"s2",
+       earn:["Consent"], reveal:"She gets halfway through STIs when the bell rings. She says you'll pick up Wednesday. You won't.",
+       gap:"Local Laws 14 & 15 track whether a health class was held — not what it contained or where it stopped."},
+      {text:"She reads aloud. It's awkward. Nobody asks anything.", next:"s2",
+       reveal:"The lesson is technically delivered. The compliance record will show: health class held.",
+       gap:"Delivery without comprehension is not instruction. No reporting framework distinguishes between the two."},
+      {text:"A PPGNY educator is visiting. She runs the full session.", next:"s2",
+       earn:["Consent","Bodily autonomy","Healthy relationships","STI prevention","Contraception"],
+       reveal:"Consent, STIs, contraception, healthy relationships — all covered. She won't return until next semester. No record links this to your name.",
+       gap:"PPGNY's DOHMH contract names no obligation to reach system-involved youth. Whatever you received this morning, the system cannot transfer it."},
+    ]
+  },
+
+  // ══ STAGE 2 — ARREST & INTAKE ═════════════════════════
+  s2:{
+    stage:2, eyebrow:"Stage 2 of 6 — Arrest & detention intake",
+    title:"Monday evening",
+    body:"You're arrested for possession of a weapon. By Wednesday you're in secure detention. No agency asks whether you were mid-unit in a health course.",
+    gap:"No statute requires any institution to confirm whether a youth entering detention was receiving SRH instruction.",
+    question:"The ACS caseworker does intake. What does she focus on?",
+    choices:[
+      {text:"Mental health, charges, family contacts. Thorough.", next:"s3",
+       reveal:"Complete on every required field. SRH education status is not one of them.",
+       gap:"ACS Policy #2014/09 requires SRH rights notification within 30 days — not at intake. No staff role is named. No penalty for non-delivery."},
+      {text:"Rapid intake — overcrowding. Health screen and family contact only.", next:"s3",
+       reveal:"She has four more intakes after yours. An SRH rights notification is logged as pending. Whether it happens is not tracked.",
+       gap:"Overcrowding that compressed this intake will also displace your classrooms at Passages Academy."},
+      {text:"She spends extra time on your mental health. Flags a referral.", next:"s3",
+       reveal:"The right call for your immediate wellbeing. SRH education does not appear on her form at all.",
+       gap:"Thorough mental health intake. Complete absence of SRH education status. Both reflect what the form requires."},
+    ]
+  },
+
+  // ══ STAGE 3 — PASSAGES ACADEMY ════════════════════════
+  s3:{
+    stage:3, eyebrow:"Stage 3 of 6 — Passages Academy",
+    title:"Education in detention",
+    body:"Passages Academy runs inside the facility. The health teacher has no record of what you covered before your arrest. She starts from scratch.",
+    gap:"Local Law 21 requires reporting on 31 categories of programming at Passages. SRH instruction is not among them.",
+    question:"What are conditions like this week?",
+    choices:[
+      {text:"A classroom is available. Health runs three times a week.", next:"s4",
+       earn:["STI prevention","Pregnancy"],
+       reveal:"She covers STI basics and pregnancy prevention. She's uncertain what else she's allowed to teach. She stays clinical.",
+       gap:"No curriculum requirement specifies SRH content at Passages. No record documents what was covered."},
+      {text:"Your classroom has been converted to sleeping space.", next:"s4",
+       reveal:"A teacher does 20 minutes on STIs with a worksheet in the common area. You have questions you don't ask.",
+       gap:"Local Law 21 records programming hours — not delivery conditions. This counts the same as a full classroom period."},
+      {text:"Modified programming. Health is cancelled twice.", next:"s4",
+       reveal:"Nothing happens. This generates no compliance flag. The Local Law 21 report will count your weeks as weeks of programming.",
+       gap:"A cancelled health session is institutionally invisible. Local Law 21 cannot document what it was not designed to capture."},
+    ]
+  },
+
+  // ══ STAGE 4 — PROBATION ═══════════════════════════════
+  s4:{
+    stage:4, eyebrow:"Stage 4 of 6 — Release & probation",
+    title:"Three weeks in. Released.",
+    body:"You're released to community supervision. This transition — detention to community — is the single most documented gap in the institutional record for SRH continuity.",
+    gap:"DOP produces no document tracking SRH delivery for CINI youth. The moment you leave ACS custody, whatever instruction you received disappears from any institutional account.",
+    question:"Your probation officer. Who do you get?",
+    choices:[
+      {text:"Standard officer. Follows the re-entry form exactly.", next:"s5",
+       reveal:"Court conditions, curfew, school re-enrollment, mental health. Professional. No SRH field. She doesn't add one.",
+       gap:"DOP PEAK Centers reference 'health services' without specifying SRH content or referral obligations."},
+      {text:"Experienced officer. She knows what the form doesn't ask.", next:"s5",
+       earn:["Healthy relationships","Consent"],
+       reveal:"She asks informally whether anyone has talked with you about sexual health and relationships. She gives you a name — a local NGO. This conversation isn't logged anywhere.",
+       gap:"Informal delivery by a committed worker. It produces no record and cannot be guaranteed to the next youth on a different caseload.", informal:true},
+      {text:"New officer. Flags every program. Makes every referral.", next:"s5",
+       reveal:"ICM Plus+ is flagged. The program mentions health services without specifying SRH content. Whether you receive it depends on which staff member you're assigned to.",
+       gap:"A referral to a program that mentions health services is not an SRH mandate."},
+    ]
+  },
+
+  // ══ STAGE 5 — COMMUNITY ═══════════════════════════════
+  s5:{
+    stage:5, eyebrow:"Stage 5 of 6 — Community supervision",
+    title:"Back in the community.",
+    body:"Probation check-ins happen. School re-enrollment is managed. SRH education appears on no form and generates no referral at any point in your supervision.",
+    question:"Is there any SRH-specific programming within reach?",
+    choices:[
+      {text:"No. Nothing accessible through any channel the system created.", next:"s6",
+       reveal:"PPGNY operates nearby. NYC Teens Connection has seven named delivery settings. None hold a contract obligation to reach system-involved youth.",
+       gap:"The gap between existing NGO capacity and its deployment to this population is a procurement choice, not a supply constraint."},
+      {text:"Yes — through a peer referral or a worker who went beyond their mandate.", next:"s6",
+       earn:["Substance use & sex","Tech & relationships","LGBTQ+ identity"],
+       reveal:"You access SRH education through a community organization. Real sessions, trained facilitator. No DOP or ACS record reflects this.",
+       gap:"Informal access is evidence that capacity exists — not evidence that the governance problem is solved.", informal:true},
+    ]
+  },
+
+  // ══ STAGE 6 — RETURN TO SCHOOL ════════════════════════
+  s6:{
+    stage:6, eyebrow:"Stage 6 of 6 — Return to school",
+    title:"School re-enrollment.",
+    body:"Probation requires school. Your zoned school has a health unit scheduled for next semester. Transfer and YABC programs — also possible placements — sit in District 79, excluded from health compliance reporting like Passages.",
+    gap:"District 79 is explicitly excluded from Local Laws 14 & 15 health education compliance reporting — the same exclusion that covered Passages Academy.",
+    question:"Next semester. The health unit is scheduled.",
+    choices:[
+      {text:"You're still enrolled. You attend.", next:"END_YES",
+       earn:["Consent","Bodily autonomy","Healthy relationships","STI prevention","Contraception","Pregnancy","LGBTQ+ identity","Substance use & sex","Tech & relationships"],
+       reveal:"Consent, STIs, contraception, LGBTQ+ content — covered over three weeks by a licensed teacher. It happened. No institution can explain whether it filled gaps or duplicated them."},
+      {text:"A second violation returns you to detention before it runs.", next:"END_NO",
+       reveal:"The cycle restarts. Each transition resets whatever continuity existed. No agency holds accountability for the cumulative gap.",
+       gap:"The second cycle produces no different institutional response than the first."},
+    ]
+  },
+
+  END_YES:{stage:7, ending:"yes"},
+  END_NO:{stage:7, ending:"no"},
+};
+
+// ── RENDER TOPICS ──────────────────────────────────────
+function renderTopics(){
+  const el = document.getElementById("topics");
+  el.innerHTML = ALL_TOPICS.map(t=>`<span class="topic${earned.has(t)?' earned':''}">${t}</span>`).join("");
+}
+
+// ── RENDER PROGRESS ────────────────────────────────────
+function renderProg(stage){
+  const p = document.getElementById("prog");
+  const l = document.getElementById("prog-lbl");
+  p.innerHTML = Array.from({length:6},(_,i)=>{
+    const s = i+1;
+    return `<div class="pip${s<stage?' done':s===stage?' active':''}"></div>`;
+  }).join("");
+  l.textContent = stage<=6?`Stage ${stage} of 6`:"Results";
+}
+
+// ── COLLECT TOPICS ─────────────────────────────────────
+function collectTopics(list){
+  if(!list) return;
+  list.forEach(t=>earned.add(t));
+  renderTopics();
+}
+
+// ── RENDER NODE ────────────────────────────────────────
+function renderNode(id){
+  currentId = id;
+  const node = N[id];
+  if(!node) return;
+  if(node.stage===7){ renderEnd(node.ending); return; }
+
+  if(node.earn) collectTopics(node.earn);
+  if(node.gap) gapsHit.push(node.gap);
+  if(node.informal) gotInformal = true;
+
+  renderProg(node.stage);
+
+  let h = "";
+  h += `<div class="s-eyebrow">${node.eyebrow}</div>`;
+  h += `<div class="s-title">${node.title}</div>`;
+  h += `<div class="s-body">${node.body}</div>`;
+
+  if(node.question && node.choices){
+    h += `<div class="q-text">${node.question}</div><div class="choices">`;
+    node.choices.forEach(c=>{
+      h += `<button class="c-btn" data-next="${c.next}" onclick="pick(this)">${c.text}</button>`;
+    });
+    h += `</div>`;
+  } else if(node.autoNext){
+    h += `<button class="next-btn" onclick="renderNode('${node.autoNext}')">Continue &rarr;</button>`;
+  }
+
+  document.getElementById("content").innerHTML = h;
+  window.scrollTo({top:0,behavior:"smooth"});
+}
+
+// ── HANDLE CHOICE ──────────────────────────────────────
+function pick(btn){
+  choiceCount++;
+  btn.parentElement.querySelectorAll(".c-btn").forEach(b=>b.disabled=true);
+  btn.classList.add("selected");
+
+  const choices = N[currentId].choices;
+  const choice = choices.find(c=>c.next===btn.getAttribute("data-next"));
+  if(!choice) return;
+
+  if(choice.earn) collectTopics(choice.earn);
+  if(choice.gap) gapsHit.push(choice.gap);
+  if(choice.informal) gotInformal = true;
+
+  if(choice.reveal){
+    const d = document.createElement("div");
+    d.className = "reveal-body";
+    d.textContent = choice.reveal;
+    btn.parentElement.insertAdjacentElement("afterend", d);
+  }
+
+  const nb = document.createElement("button");
+  nb.className = "next-btn";
+  nb.innerHTML = N[choice.next] && N[choice.next].stage===7 ? "See results &rarr;" : "Continue &rarr;";
+  nb.onclick = ()=>renderNode(choice.next);
+  setTimeout(()=>document.getElementById("content").appendChild(nb), 100);
+}
+
+// ── END SCREEN ─────────────────────────────────────────
+function renderEnd(ending){
+  renderProg(7);
+
+  const total = ALL_TOPICS.length;
+  const count = earned.size;
+  const missed = ALL_TOPICS.filter(t=>!earned.has(t));
+  const gotEd = ending==="yes";
+
+  let h = "";
+
+  h += `<div class="end-badge ${gotEd?'yes':'no'}">${gotEd?'Education received':'No complete education'}</div>`;
+  h += `<div class="end-title">${gotEd
+    ? "You received SRH education. The system cannot explain why."
+    : "You crossed six institutions. No one was accountable for your SRH education."
+  }</div>`;
+  h += `<div class="end-body">${gotEd
+    ? "Your path happened to include a health unit you were still enrolled to receive. Whether it filled the gaps created by your detention or duplicated what you already knew, no institution can say. A different path through the same system — equally likely — received nothing. The record cannot distinguish between your outcome and theirs."
+    : "Each institution satisfied its own compliance metrics. Your SRH education trajectory was never a required data point at any transition. No statute required continuity. No form tracked the gap. No actor was named responsible. This is not an exceptional outcome. It is the default."
+  }</div>`;
+
+  if(gotInformal){
+    h += `<div class="end-body" style="margin-bottom:1.5rem;padding:.85rem 1rem;border-left:2px solid var(--sk);font-size:13px;color:var(--skd)">Your path included a worker who filled a gap informally. That help was real. It produces no compliance record and cannot be guaranteed to the next youth on a different caseload. Informal delivery is evidence that capacity exists — not that the governance problem is solved.</div>`;
+  }
+
+  // Topic summary
+  h += `<div class="end-topics-lbl">Topics from comprehensive SRH education</div>`;
+  h += `<div class="end-topics">`;
+  ALL_TOPICS.forEach(t=>{
+    h += `<span class="end-topic ${earned.has(t)?'earned':'missed'}">${t}</span>`;
+  });
+  h += `</div>`;
+
+  // Stats
+  h += `<div class="stat-row">`;
+  h += `<div class="stat-box"><div class="stat-n ${count<total?'red':'blue'}">${count}/${total}</div><div class="stat-l">topics from the Healthy and Safe Students Act standard</div></div>`;
+  h += `<div class="stat-box"><div class="stat-n red">0</div><div class="stat-l">agencies that tracked your SRH education status across transitions</div></div>`;
+  h += `</div>`;
+
+  // Policy note
+  h += `<div class="policy-box"><strong>Why this holds across every path:</strong> The Healthy and Safe Students Act (S6901/A7496) has been introduced every legislative session since 2017. It has never reached a floor vote. No legislator bears a consequence for that inaction. Neither does any institution in the system you just navigated.</div>`;
+
+  // Key gaps
+  if(gapsHit.length){
+    h += `<div class="policy-box"><strong>Policy gaps on your path:</strong><br><br>`;
+    [...new Set(gapsHit)].forEach(g=>{
+      h += `<div class="gap-row"><span>${g}</span></div><br>`;
+    });
+    h += `</div>`;
+  }
+
+  h += `<button class="restart-btn" onclick="restart()">Try a different path &rarr;</button>`;
+
+  document.getElementById("content").innerHTML = h;
+  window.scrollTo({top:0,behavior:"smooth"});
+}
+
+function restart(){
+  earned=new Set(); gapsHit=[]; gotInformal=false; choiceCount=0; currentId="s1";
+  renderTopics();
+  renderNode("s1");
+}
+
+renderTopics();
+renderNode("s1");
+</script>
+</body>
+</html>
