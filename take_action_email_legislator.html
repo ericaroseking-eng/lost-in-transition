@@ -1,0 +1,178 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>Email Your Legislator — Lost in Transition</title>
+<link href="https://fonts.googleapis.com/css2?family=DM+Mono:wght@400;500&family=Playfair+Display:wght@600;700&family=DM+Sans:wght@400;500&display=swap" rel="stylesheet" />
+<style>
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+  body { font-family: 'DM Sans', sans-serif; background: #ffffff; color: #1a1a18; padding: 2.5rem 2rem 4rem; max-width: 860px; margin: 0 auto; line-height: 1.6; }
+  .eyebrow { font-family: 'DM Mono', monospace; font-size: 10px; text-transform: uppercase; letter-spacing: 0.12em; color: #a32d2d; margin-bottom: 10px; }
+  .title { font-family: 'Playfair Display', serif; font-size: 24px; font-weight: 700; line-height: 1.25; margin-bottom: 12px; color: #1a1a18; }
+  .blurb { font-size: 14px; color: #5f5e5a; line-height: 1.7; max-width: 620px; margin-bottom: 2rem; border-left: 2px solid #a32d2d; padding-left: 14px; }
+  .bill-box { background: #f6f5f2; border: 0.5px solid rgba(0,0,0,0.12); border-radius: 12px; padding: 1rem 1.25rem; margin-bottom: 1rem; display: flex; align-items: flex-start; gap: 14px; }
+  .bill-badge { font-family: 'DM Mono', monospace; font-size: 11px; font-weight: 500; background: #FCEBEB; color: #791F1F; padding: 4px 10px; border-radius: 6px; white-space: nowrap; flex-shrink: 0; margin-top: 2px; }
+  .bill-text { font-size: 13px; color: #5f5e5a; line-height: 1.6; }
+  .bill-text strong { font-weight: 500; color: #1a1a18; }
+  .sponsors-label { font-family: 'DM Mono', monospace; font-size: 10px; text-transform: uppercase; letter-spacing: 0.1em; color: #888780; margin: 1.5rem 0 10px; }
+  .chamber-label { font-family: 'DM Mono', monospace; font-size: 10px; text-transform: uppercase; letter-spacing: 0.08em; color: #888780; margin: 14px 0 8px; }
+  .sponsors-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(200px, 1fr)); gap: 8px; margin-bottom: 4px; }
+  .sponsor-card { background: #ffffff; border: 0.5px solid rgba(0,0,0,0.12); border-radius: 8px; padding: 10px 12px; cursor: pointer; transition: border-color 0.15s, background 0.15s; display: flex; align-items: center; gap: 10px; }
+  .sponsor-card:hover { border-color: rgba(0,0,0,0.28); background: #f6f5f2; }
+  .sponsor-card.selected { border-color: #a32d2d; border-width: 1px; }
+  .sponsor-initials { width: 32px; height: 32px; border-radius: 50%; background: #FCEBEB; color: #791F1F; font-family: 'DM Mono', monospace; font-size: 11px; font-weight: 500; display: flex; align-items: center; justify-content: center; flex-shrink: 0; }
+  .sponsor-name { font-size: 12px; font-weight: 500; color: #1a1a18; line-height: 1.3; }
+  .sponsor-role { font-family: 'DM Mono', monospace; font-size: 10px; color: #888780; }
+  .email-section { background: #ffffff; border: 0.5px solid rgba(0,0,0,0.12); border-radius: 12px; padding: 1.5rem; margin-top: 1.5rem; }
+  .email-section-label { font-family: 'DM Mono', monospace; font-size: 10px; text-transform: uppercase; letter-spacing: 0.1em; color: #888780; margin-bottom: 1rem; }
+  .selected-indicator { font-size: 12px; color: #5f5e5a; margin-bottom: 12px; font-style: italic; }
+  .selected-indicator span { color: #a32d2d; font-style: normal; font-weight: 500; }
+  .email-fields { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-bottom: 12px; }
+  .field-group { display: flex; flex-direction: column; gap: 4px; }
+  .field-label { font-size: 11px; color: #5f5e5a; }
+  input[type="text"] { font-family: 'DM Sans', sans-serif; font-size: 13px; padding: 8px 10px; border: 0.5px solid rgba(0,0,0,0.2); border-radius: 8px; background: #f6f5f2; color: #1a1a18; width: 100%; }
+  input[type="text"]:focus { outline: none; border-color: #a32d2d; }
+  .email-preview { background: #f6f5f2; border: 0.5px solid rgba(0,0,0,0.1); border-radius: 8px; padding: 1rem; font-size: 12px; color: #5f5e5a; line-height: 1.7; margin-bottom: 12px; white-space: pre-wrap; font-family: 'DM Sans', sans-serif; }
+  .send-btn { font-family: 'DM Mono', monospace; font-size: 12px; padding: 10px 20px; background: #1a1a18; color: #ffffff; border: none; border-radius: 20px; cursor: pointer; transition: opacity 0.15s; display: inline-flex; align-items: center; gap: 6px; }
+  .send-btn:hover { opacity: 0.82; }
+  .disclaimer { font-size: 11px; color: #888780; margin-top: 10px; line-height: 1.5; }
+</style>
+</head>
+<body>
+
+<div class="eyebrow">Take action</div>
+<div class="title">Tell your legislators to pass the Healthy and Safe Students Act</div>
+<p class="blurb">The Healthy and Safe Students Act (S6901A / A7496A) has been introduced in the New York State Legislature every session since 2017. It has broad co-sponsorship and no organized opposition — yet it has never received a floor vote. Passing this bill with an explicit extension to detention, alternative education, and probation settings is the foundational statutory fix that every other reform depends on. It takes two minutes to email your legislator today.</p>
+
+<div class="bill-box">
+  <span class="bill-badge">S6901A</span>
+  <div class="bill-text"><strong>Senate sponsor: Sen. Julia Salazar</strong> — co-sponsored by Brisport, Brouk, Cleare, Gianaris, Gonzalez, Gounardes, Hoylman-Sigal, Jackson, Krueger, Liu, May, Myrie, Ramos, Rivera, and Serrano. Currently in the Senate Education Committee.</div>
+</div>
+<div class="bill-box">
+  <span class="bill-badge">A7496A</span>
+  <div class="bill-text"><strong>Assembly sponsor: Assemb. Gonzalez-Rojas</strong> — co-sponsored by 50+ members including Glick, Paulin, Dinowitz, Epstein, Cruz, Simon, Rosenthal, Seawright, Hevesi, and Mamdani. Currently in the Assembly Education Committee.</div>
+</div>
+
+<div class="sponsors-label">Select a sponsor to email</div>
+<div class="chamber-label">Senate</div>
+<div class="sponsors-grid" id="senate-grid"></div>
+<div class="chamber-label">Assembly</div>
+<div class="sponsors-grid" id="assembly-grid"></div>
+
+<div class="email-section">
+  <div class="email-section-label">Compose your message</div>
+  <div class="selected-indicator" id="selected-label">No legislator selected — choose one above</div>
+  <div class="email-fields">
+    <div class="field-group">
+      <div class="field-label">Your name</div>
+      <input type="text" id="sender-name" placeholder="e.g. Jane Smith" oninput="updatePreview()" />
+    </div>
+    <div class="field-group">
+      <div class="field-label">Your borough / district (optional)</div>
+      <input type="text" id="sender-district" placeholder="e.g. Brooklyn, District 18" oninput="updatePreview()" />
+    </div>
+  </div>
+  <div class="email-preview" id="email-preview">Select a legislator above to generate your email.</div>
+  <button class="send-btn" onclick="openEmail()">Open in email client &#x2197;</button>
+  <p class="disclaimer">This opens your default email app with the message pre-filled. You can edit before sending. No data is collected by this tool.</p>
+</div>
+
+<script>
+var senate = [
+  { name: "Julia Salazar", role: "Lead sponsor, SD18", email: "salazar@nysenate.gov" },
+  { name: "Jabari Brisport", role: "Co-sponsor, SD25", email: "brisport@nysenate.gov" },
+  { name: "Samra Brouk", role: "Co-sponsor, SD55", email: "brouk@nysenate.gov" },
+  { name: "Cordell Cleare", role: "Co-sponsor, SD30", email: "cleare@nysenate.gov" },
+  { name: "Michael Gianaris", role: "Co-sponsor, SD12", email: "gianaris@nysenate.gov" },
+  { name: "Jessica Gonzalez", role: "Co-sponsor, SD31", email: "gonzalez@nysenate.gov" },
+  { name: "Andrew Gounardes", role: "Co-sponsor, SD22", email: "gounardes@nysenate.gov" },
+  { name: "Brad Hoylman-Sigal", role: "Co-sponsor, SD27", email: "hoylman@nysenate.gov" },
+  { name: "Robert Jackson", role: "Co-sponsor, SD31", email: "jackson@nysenate.gov" },
+  { name: "Liz Krueger", role: "Co-sponsor, SD28", email: "krueger@nysenate.gov" },
+  { name: "John Liu", role: "Co-sponsor, SD16", email: "liu@nysenate.gov" },
+  { name: "Rachel May", role: "Co-sponsor, SD53", email: "may@nysenate.gov" },
+  { name: "Zellnor Myrie", role: "Co-sponsor, SD20", email: "myrie@nysenate.gov" },
+  { name: "Jessica Ramos", role: "Co-sponsor, SD13", email: "ramos@nysenate.gov" },
+  { name: "Gustavo Rivera", role: "Co-sponsor, SD33", email: "rivera@nysenate.gov" },
+  { name: "Jose Serrano", role: "Co-sponsor, SD29", email: "serrano@nysenate.gov" },
+];
+
+var assembly = [
+  { name: "Jessica Gonzalez-Rojas", role: "Lead sponsor, AD34", email: "gonzalezrojasj@nyassembly.gov" },
+  { name: "Deborah Glick", role: "Co-sponsor, AD66", email: "glickd@nyassembly.gov" },
+  { name: "Amy Paulin", role: "Co-sponsor, AD88", email: "paulina@nyassembly.gov" },
+  { name: "Jeffrey Dinowitz", role: "Co-sponsor, AD81", email: "dinowitzj@nyassembly.gov" },
+  { name: "Harvey Epstein", role: "Co-sponsor, AD74", email: "epsteinh@nyassembly.gov" },
+  { name: "Catalina Cruz", role: "Co-sponsor, AD39", email: "cruzc@nyassembly.gov" },
+  { name: "Vivian Cook", role: "Co-sponsor, AD32", email: "cookv@nyassembly.gov" },
+  { name: "Jo Anne Simon", role: "Co-sponsor, AD52", email: "simonj@nyassembly.gov" },
+  { name: "Linda Rosenthal", role: "Co-sponsor, AD67", email: "rosenthall@nyassembly.gov" },
+  { name: "Rebecca Seawright", role: "Co-sponsor, AD76", email: "seawrightr@nyassembly.gov" },
+  { name: "Andrew Hevesi", role: "Co-sponsor, AD28", email: "hevesia@nyassembly.gov" },
+  { name: "Zohran Mamdani", role: "Co-sponsor, AD36", email: "mamdaniz@nyassembly.gov" },
+  { name: "Michaelle Solages", role: "Co-sponsor, AD22", email: "solagesm@nyassembly.gov" },
+  { name: "Anna Kelles", role: "Co-sponsor, AD125", email: "kellesa@nyassembly.gov" },
+  { name: "Pamela Hunter", role: "Co-sponsor, AD128", email: "hunterp@nyassembly.gov" },
+  { name: "Karines Reyes", role: "Co-sponsor, AD87", email: "reyesk@nyassembly.gov" },
+];
+
+var selectedLegislator = null;
+
+function initials(name) {
+  var parts = name.split(' ');
+  return (parts[0][0] + parts[parts.length - 1][0]).toUpperCase();
+}
+
+function renderGrid(people, containerId) {
+  var html = '';
+  for (var i = 0; i < people.length; i++) {
+    var p = people[i];
+    html += '<div class="sponsor-card" id="' + containerId + '-' + i + '" onclick="selectLegislator(\'' + containerId + '\',' + i + ')">'
+      + '<div class="sponsor-initials">' + initials(p.name) + '</div>'
+      + '<div><div class="sponsor-name">' + p.name + '</div><div class="sponsor-role">' + p.role + '</div></div>'
+      + '</div>';
+  }
+  document.getElementById(containerId).innerHTML = html;
+}
+
+function selectLegislator(gridId, idx) {
+  var cards = document.querySelectorAll('.sponsor-card');
+  for (var i = 0; i < cards.length; i++) cards[i].classList.remove('selected');
+  document.getElementById(gridId + '-' + idx).classList.add('selected');
+  selectedLegislator = gridId === 'senate-grid' ? senate[idx] : assembly[idx];
+  document.getElementById('selected-label').innerHTML = 'Emailing: <span>' + selectedLegislator.name + '</span>';
+  updatePreview();
+}
+
+function updatePreview() {
+  if (!selectedLegislator) return;
+  var name = document.getElementById('sender-name').value.trim() || '[Your name]';
+  var district = document.getElementById('sender-district').value.trim();
+  var loc = district ? ', a constituent from ' + district + ',' : '';
+  var chamber = selectedLegislator.role.indexOf('SD') !== -1 ? 'Senator' : 'Assembly Member';
+  var lastName = selectedLegislator.name.split(' ').pop();
+
+  var text = 'Dear ' + chamber + ' ' + lastName + ',\n\n'
+    + 'My name is ' + name + loc + ' and I am writing to urge you to bring the Healthy and Safe Students Act (S6901A / A7496A) to a floor vote in the 2025\u20132026 legislative session.\n\n'
+    + 'This bill has been introduced every session since 2017. It has broad co-sponsorship and no organized opposition. What it lacks is a floor vote.\n\n'
+    + 'I am particularly concerned about young people in New York City\'s juvenile justice and child welfare systems. When a young person moves from a public school into detention or community supervision, they disappear from every sexual and reproductive health education compliance framework the city operates. No agency holds enforceable accountability for whether they receive instruction on consent, STI prevention, contraception, healthy relationships, or LGBTQ+-inclusive content. The Healthy and Safe Students Act is the statutory foundation that every downstream administrative fix requires.\n\n'
+    + 'I urge you to support passage of this bill with an explicit provision extending its requirements to alternative education, detention, and probation settings, so that system-involved youth are not excluded from its protections.\n\n'
+    + 'Thank you for your attention to this issue.\n\n'
+    + 'Sincerely,\n' + name;
+
+  document.getElementById('email-preview').textContent = text;
+}
+
+function openEmail() {
+  if (!selectedLegislator) { alert('Please select a legislator first.'); return; }
+  var subject = encodeURIComponent('Please bring the Healthy and Safe Students Act to a floor vote');
+  var body = encodeURIComponent(document.getElementById('email-preview').textContent);
+  window.open('mailto:' + selectedLegislator.email + '?subject=' + subject + '&body=' + body);
+}
+
+renderGrid(senate, 'senate-grid');
+renderGrid(assembly, 'assembly-grid');
+</script>
+</body>
+</html>
