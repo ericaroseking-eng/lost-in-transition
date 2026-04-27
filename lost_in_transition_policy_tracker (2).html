@@ -1,0 +1,182 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>Lost in Transition — Policy Tracker</title>
+<link href="https://fonts.googleapis.com/css2?family=Google+Sans:wght@400;500&family=Google+Sans+Mono:wght@400;500&display=swap" rel="stylesheet" />
+<style>
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+  body {
+    font-family: 'Google Sans', 'Product Sans', sans-serif;
+    background: #ffffff;
+    color: #1a1a18;
+    padding: 2.5rem 2rem 4rem;
+    max-width: 900px;
+    margin: 0 auto;
+    line-height: 1.6;
+  }
+  .tracker-title { font-family: 'Google Sans', 'Product Sans', sans-serif; font-size: 26px; font-weight: 500; letter-spacing: -0.3px; margin-bottom: 8px; color: #1a1a18; }
+  .tracker-rq { font-size: 13px; color: #5f5e5a; font-style: italic; line-height: 1.6; max-width: 580px; margin-bottom: 2rem; border-left: 2px solid #a32d2d; padding-left: 12px; }
+  .filter-row { display: flex; flex-wrap: wrap; gap: 8px; margin-bottom: 1.75rem; }
+  .filter-btn { font-family: 'Google Sans Mono', monospace; font-size: 11px; padding: 5px 14px; border-radius: 20px; border: 0.5px solid rgba(0,0,0,0.25); background: transparent; color: #5f5e5a; cursor: pointer; transition: all 0.15s ease; }
+  .filter-btn:hover { background: #f6f5f2; }
+  .filter-btn.active { background: #1a1a18; color: #ffffff; border-color: #1a1a18; }
+  .count-badge { font-family: 'Google Sans Mono', monospace; font-size: 10px; background: rgba(0,0,0,0.08); color: #5f5e5a; padding: 1px 6px; border-radius: 10px; margin-left: 5px; }
+  .filter-btn.active .count-badge { background: rgba(255,255,255,0.2); color: #ffffff; }
+  .cards-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(260px, 1fr)); gap: 10px; margin-bottom: 12px; }
+  .policy-card { background: #ffffff; border: 0.5px solid rgba(0,0,0,0.12); border-radius: 12px; padding: 1rem 1.25rem; cursor: pointer; transition: border-color 0.15s, background 0.15s; }
+  .policy-card:hover { border-color: rgba(0,0,0,0.28); background: #f6f5f2; }
+  .policy-card.selected { border-color: #a32d2d; border-width: 1px; background: #f6f5f2; }
+  .card-layer { font-family: 'Google Sans Mono', monospace; font-size: 9px; color: #888780; text-transform: uppercase; letter-spacing: 0.1em; margin-bottom: 7px; }
+  .card-name { font-size: 13px; font-weight: 500; color: #1a1a18; line-height: 1.4; margin-bottom: 3px; }
+  .card-agency { font-size: 11px; color: #888780; margin-bottom: 10px; }
+  .tag-row { display: flex; flex-wrap: wrap; gap: 4px; }
+  .tag { font-family: 'Google Sans Mono', monospace; font-size: 10px; font-weight: 500; padding: 3px 7px; border-radius: 4px; letter-spacing: 0.03em; }
+  .tag-GAP        { background: #FCEBEB; color: #791F1F; }
+  .tag-PARTIAL    { background: #FAEEDA; color: #633806; }
+  .tag-PRESENT    { background: #EAF3DE; color: #27500A; }
+  .tag-LAPSED     { background: #EEEDE8; color: #444441; }
+  .tag-NO-ENFORCE { background: #EEEDFE; color: #3C3489; }
+  .tag-REACTIVE   { background: #FAECE7; color: #712B13; }
+  .tag-PREVENTIVE { background: #E6F1FB; color: #0C447C; }
+  .tag-STATUTE    { background: #E1F5EE; color: #085041; }
+  .detail-panel { display: none; margin-top: 4px; margin-bottom: 12px; background: #f6f5f2; border: 0.5px solid rgba(0,0,0,0.18); border-left: 3px solid #a32d2d; border-radius: 12px; padding: 1.5rem; animation: slideIn 0.18s ease; }
+  @keyframes slideIn { from { opacity: 0; transform: translateY(-6px); } to { opacity: 1; transform: translateY(0); } }
+  .detail-panel.open { display: block; }
+  .detail-panel-header { display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 1rem; gap: 1rem; }
+  .detail-name { font-family: 'Google Sans', sans-serif; font-size: 16px; font-weight: 500; line-height: 1.4; color: #1a1a18; }
+  .close-btn { background: transparent; border: 0.5px solid rgba(0,0,0,0.22); border-radius: 50%; width: 28px; height: 28px; min-width: 28px; cursor: pointer; font-size: 13px; color: #5f5e5a; display: flex; align-items: center; justify-content: center; transition: background 0.12s; }
+  .close-btn:hover { background: #ffffff; }
+  .detail-tag-row { display: flex; flex-wrap: wrap; gap: 5px; margin-bottom: 1.25rem; }
+  .detail-sections { display: grid; grid-template-columns: 1fr 1fr; gap: 16px 24px; }
+  .detail-block.full { grid-column: 1 / -1; }
+  .detail-label { font-family: 'Google Sans Mono', monospace; font-size: 9px; text-transform: uppercase; letter-spacing: 0.1em; color: #888780; margin-bottom: 6px; }
+  .detail-text { font-size: 13px; color: #5f5e5a; line-height: 1.65; }
+  .legend { margin-top: 2.5rem; padding-top: 1.5rem; border-top: 0.5px solid rgba(0,0,0,0.1); }
+  .legend-label { font-family: 'Google Sans Mono', monospace; font-size: 9px; text-transform: uppercase; letter-spacing: 0.1em; color: #888780; margin-bottom: 10px; }
+  .legend-grid { display: flex; flex-wrap: wrap; gap: 6px; }
+</style>
+</head>
+<body>
+
+<div class="tracker-title">Lost in Transition — Policy Tracker</div>
+<p class="tracker-rq">How is sexual and reproductive health education implemented for system-involved youth in New York City, and what institutional factors shape its delivery?</p>
+<div class="filter-row" id="filters"></div>
+<div class="cards-grid" id="cards"></div>
+<div class="detail-panel" id="detail-panel">
+  <div class="detail-panel-header">
+    <div class="detail-name" id="detail-name"></div>
+    <button class="close-btn" onclick="closeDetail()">&#x2715;</button>
+  </div>
+  <div class="detail-tag-row" id="detail-tags"></div>
+  <div class="detail-sections">
+    <div class="detail-block"><div class="detail-label">What it states</div><div class="detail-text" id="detail-states"></div></div>
+    <div class="detail-block"><div class="detail-label">What it omits</div><div class="detail-text" id="detail-omits"></div></div>
+    <div class="detail-block full"><div class="detail-label">What it reveals</div><div class="detail-text" id="detail-reveals"></div></div>
+  </div>
+</div>
+<div class="legend">
+  <div class="legend-label">Coding system</div>
+  <div class="legend-grid" id="legend"></div>
+</div>
+
+<script>
+const tagMeta = {
+  "PRESENT":    { label: "Present",     desc: "Document exists with substantive content" },
+  "PARTIAL":    { label: "Partial",     desc: "Exists but with significant omissions" },
+  "GAP":        { label: "Gap",         desc: "Expected document absent from institutional record" },
+  "LAPSED":     { label: "Lapsed",      desc: "Funding ended without successor" },
+  "NO-ENFORCE": { label: "No enforce",  desc: "Exists but no enforcement mechanism or consequence" },
+  "REACTIVE":   { label: "Reactive",    desc: "Downstream clinical or post-incident funding" },
+  "PREVENTIVE": { label: "Preventive",  desc: "Upstream educational funding" },
+  "STATUTE":    { label: "Statute",     desc: "Statutory mandate in effect" },
+};
+const policies = [
+  { name: "Commissioner's Regulation 8 CRR-NY 135.3", agency: "NYSED", layer: "Statutory", tags: ["PRESENT","NO-ENFORCE"], states: "Requires AIDS instruction in grades K-12 with parental opt-out permitted.", omits: "No comprehensive SRH content beyond AIDS. No delivery frequency, staffing standard, or enforcement mechanism. No provision for non-school environments.", reveals: "Even this minimal floor is unverifiable in practice. Each institutional transition resets any instructional obligation to zero for system-involved youth." },
+  { name: "NYC DOE Wellness Policy", agency: "NYC DOE", layer: "Statutory", tags: ["PRESENT","NO-ENFORCE"], states: "Advocates for medically accurate, comprehensive, inclusive SRH across all NYC schools.", omits: "No enforcement mechanism, audit schedule, or compliance consequence.", reveals: "Progressive guidance without enforcement absorbs advocacy energy while delivering no enforceable standard. Its progressivism is analytically its problem (Matland, 1995)." },
+  { name: "Healthy and Safe Students Act S6901/A7496", agency: "NYS Legislature", layer: "Statutory", tags: ["PARTIAL","NO-ENFORCE"], states: "Comprehensive, medically accurate SRH requirements covering consent, STI prevention, LGBTQ+ identity, and healthy relationships. Broad co-sponsorship since 2017.", omits: "No floor vote across eight legislative sessions. No fiscal note. Only committee referrals in the record. No explicit provision for detention, alternative education, or probation settings.", reveals: "Perpetual committee referral without a floor vote is the primary documentary evidence of an ambiguity condition. No legislator bears consequences for inaction." },
+  { name: "Comprehensive SRH statute for system-involved youth", agency: "NYS / NYC", layer: "Statutory", tags: ["GAP"], states: "No such statute exists.", omits: "No state or city statute mandates comprehensive SRH for system-involved youth in any custodial or supervisory setting.", reveals: "The foundational statutory gap from which all subsequent administrative, fiscal, and delivery gaps follow. System-involved youth have no statutory entitlement to SRH education beyond the unenforced floor that applies to all youth." },
+  { name: "Local Laws 14 & 15 Annual Reports", agency: "NYC DOE", layer: "Administrative", tags: ["PARTIAL","NO-ENFORCE"], states: "Health education delivery rates and instructor licensure data disaggregated to the building level for grades 6-12.", omits: "Explicitly excludes District 79 (Passages Academy), District 75, YABC, and charter schools. No curricular content specificity.", reveals: "Students disappear from the compliance record at the moment of transition into detention. The exclusion is structural, not incidental." },
+  { name: "Local Law 21 of 2024", agency: "NYCPS / ACS", layer: "Administrative", tags: ["PARTIAL","NO-ENFORCE"], states: "Requires NYCPS and ACS to report on 31 categories of educational programming at Passages and ACS placement facilities. Health listed as a reporting category.", omits: "SRH is not a required reporting field. No documentation of what health courses contain or which students received them.", reveals: "The law meant to close the accountability gap created a new one. A youth in ACS custody generates an auditable record of mental health services but no equivalent record documents whether they received SRH instruction." },
+  { name: "ACS Policy #2014/09 & SRH Bill of Rights", agency: "ACS", layer: "Administrative", tags: ["PRESENT","NO-ENFORCE"], states: "Requires SRH rights notification within 30 days of placement entry and every six months thereafter. Bill of Rights includes PrEP access, gender-affirming care, and a complaint email address.", omits: "No educational content standard, delivery mechanism, named responsible staff role, audit schedule, or enforcement consequence.", reveals: "A rights document without institutional accountability provisions is architecturally different from a delivery standard. It documents a commitment without creating the conditions for its fulfillment." },
+  { name: "NYC Crossover Youth Practice Model Protocol", agency: "ACS / DOP / Family Court", layer: "Administrative", tags: ["PRESENT","GAP"], states: "Governs inter-agency coordination for dually-involved youth. Names family engagement as a foundational principle across seven operational domains.", omits: "SRH content, referral, or tracking absent from every stage. Health education entirely outside scope.", reveals: "The most structurally sophisticated cross-system coordination protocol in the NYC juvenile justice landscape treats SRH as outside its mandate. Its silence is a scoping choice that can be reversed (Pressman & Wildavsky, 1973)." },
+  { name: "Interagency Coordinating Council on Youth (ICC)", agency: "DYCD", layer: "Administrative", tags: ["PRESENT","GAP"], states: "Names court-involved youth and LGBTQ+ youth as distinct populations within its working group structure.", omits: "SRH absent from every working group mandate, consultation agenda, training requirement, and tracked outcome in the public record.", reveals: "The ICC is the most structurally positioned body to hold cross-agency SRH accountability. Its silence on SRH is a scoping choice, not a capacity gap." },
+  { name: "SRH compliance record at Passages Academy", agency: "NYC DOE District 79", layer: "Administrative", tags: ["GAP"], states: "No document found.", omits: "No curriculum, lesson plan, delivery log, inspection, or program evaluation for SRH instruction identified in any publicly accessible record.", reveals: "The primary educational facility for detained NYC youth produces no publicly accessible record of what health education it delivers (Bowen, 2009)." },
+  { name: "SRH mandate for DOP probation officers", agency: "Dept. of Probation", layer: "Administrative", tags: ["GAP"], states: "No document found. DOP PEAK Centers reference 'health services' without specifying SRH content.", omits: "No SRH content standard, training requirement, or referral obligation for probation officers in any document.", reveals: "The largest institutional contact point for CINI youth carries no SRH mandate, no trained actor, and no accountability mechanism (Lipsky, 1980)." },
+  { name: "ACS to Children's Village MST-PSB contract", agency: "ACS", layer: "Procurement", tags: ["PRESENT","REACTIVE"], states: "Clinical intervention contract worth $3,153,945 for Multisystemic Therapy for Problem Sexual Behavior.", omits: "No upstream SRH education component. Population defined by exhibited harmful sexual behavior, not system-involvement broadly.", reveals: "The city's single largest SRH-related investment for justice-involved youth arrives after the conditions comprehensive SRH education might have addressed." },
+  { name: "DOHMH to PPGNY Making Proud Choices! + NIRH TORCH", agency: "DOHMH", layer: "Procurement", tags: ["PRESENT","PREVENTIVE","GAP"], states: "Total municipal preventive SRH procurement of $1,057,434 across two contracts.", omits: "Neither contract names court-involved or system-involved youth as a required beneficiary.", reveals: "The entire municipal preventive SRH education budget is less than one-third of the single reactive MST-PSB contract. The exclusion of system-involved youth is a procurement choice, not a supply constraint." },
+  { name: "MOCJ Family Justice Center network (10 contracts)", agency: "MOCJ", layer: "Procurement", tags: ["PRESENT","REACTIVE"], states: "Post-harm case management for domestic violence survivors. $13,448,740 across ten contracts.", omits: "Does not reach system-involved youth as a defined population.", reveals: "Reactive spending exceeds the entire preventive SRH education budget by a factor of more than twelve." },
+  { name: "Federal TPP grants: Project STIQ + Project SHINE", agency: "HHS / PPGNY", layer: "Procurement", tags: ["LAPSED"], states: "$6,189,674 obligated, $4,375,659 disbursed. STIQ ended June 2023; SHINE ended December 2023.", omits: "Neither grant designated system-involved youth as a required beneficiary. No successor grants identified.", reveals: "Combined federal preventive investment ended across a twelve-month period with no renewal, while the detention population grew." },
+  { name: "DOP Behavioral Health Unit + Impact Program", agency: "Dept. of Probation", layer: "Procurement", tags: ["LAPSED"], states: "Both programs served CINI youth with health-adjacent supports prior to elimination.", omits: "Eliminated in FY2025 budget (-$2,000,000 combined). No replacement identified.", reveals: "The city eliminated health-adjacent CINI programming in the same fiscal period that federal TPP grants lapsed, while the detention population was expanding." },
+  { name: "NYC Teens Connection", agency: "DOHMH", layer: "NGO / Provider", tags: ["PRESENT","GAP"], states: "Delivers three evidence-based curricula across seven named settings.", omits: "Juvenile justice settings absent from formal program description. No ACS or DOP contractual obligation.", reveals: "Adding ACS detention and DOP probation to the seven named settings is a scope decision, not a program design problem." },
+  { name: "Planned Parenthood of Greater New York (PPGNY)", agency: "DOHMH + HHS", layer: "NGO / Provider", tags: ["PRESENT","GAP"], states: "Primary contracted preventive SRH provider. Active federal TPP funding of $1,091,185 annually through 2028.", omits: "No system-involved youth beneficiary designation in any active contract.", reveals: "Federal preventive investment in NYC through PPGNY continues while the highest-need population remains outside the required beneficiary definition in every active funding instrument." },
+  { name: "Children's Aid Society — Carrera Program", agency: "Children's Aid Society", layer: "NGO / Provider", tags: ["PRESENT","PARTIAL"], states: "Strongest long-duration developmental SRH model in the city. Combines education, health, and workforce components over multiple years.", omits: "Enrollment-dependent structure requires stable community presence over months. No contract obligation to reach detained youth.", reveals: "Most appropriate for CINI youth stable enough to maintain consistent participation. Structurally incompatible with short detention stays." },
+  { name: "Callen-Lorde — HOTT Program", agency: "Callen-Lorde CHC", layer: "NGO / Provider", tags: ["PRESENT","GAP"], states: "Serves LGBTQ+ and unstably housed youth 13-24 via mobile unit and fixed clinical sites across the five boroughs. Free of charge.", omits: "No formal ACS or DOP referral protocol despite substantial population overlap with system-involved youth.", reveals: "The mobile delivery model is the most structurally compatible with system-involved youth of any provider examined. The absence of a referral protocol is a contracting choice, not a capacity constraint." },
+  { name: "The Door — Adolescent Health Center", agency: "The Door", layer: "NGO / Provider", tags: ["PRESENT","GAP"], states: "No-cost, confidential comprehensive health and SRH services for youth 12-24. Walk-in access model.", omits: "Walk-in model requires youth to independently locate and enroll. No ACS or DOP referral pathway.", reveals: "Delivery model assumes community stability and self-directed access — conditions structurally unavailable to incarcerated youth. Capacity is present; access pathway is absent." },
+  { name: "Mount Sinai SBHC Network", agency: "Icahn School of Medicine", layer: "NGO / Provider", tags: ["PRESENT","PARTIAL"], states: "Model SRH programs at six school-based health centers. Research involvement with foster care youth.", omits: "SBHC model depends on school enrollment. Detained youth excluded by design. No detention or probation referral protocol.", reveals: "The strongest clinical SRH model in the city is architecturally limited to the sub-population with the most stable institutional connection." }
+];
+
+const layers = ["All", "Statutory", "Administrative", "Procurement", "NGO / Provider"];
+let activeLayer = "All";
+let selectedIdx = null;
+
+function renderFilters() {
+  document.getElementById('filters').innerHTML = layers.map(l => {
+    const count = l === "All" ? policies.length : policies.filter(p => p.layer === l).length;
+    return '<button class="filter-btn ' + (activeLayer===l?'active':'') + '" onclick="setLayer(\'' + l + '\')">' + l + '<span class="count-badge">' + count + '</span></button>';
+  }).join('');
+}
+
+function renderCards() {
+  const filtered = activeLayer === "All" ? policies : policies.filter(p => p.layer === activeLayer);
+  document.getElementById('cards').innerHTML = filtered.map(p => {
+    const realIdx = policies.indexOf(p);
+    return '<div class="policy-card ' + (selectedIdx===realIdx?'selected':'') + '" onclick="openDetail(' + realIdx + ')">'
+      + '<div class="card-layer">' + p.layer + '</div>'
+      + '<div class="card-name">' + p.name + '</div>'
+      + '<div class="card-agency">' + p.agency + '</div>'
+      + '<div class="tag-row">' + p.tags.map(t => '<span class="tag tag-' + t + '">' + tagMeta[t].label + '</span>').join('') + '</div>'
+      + '</div>';
+  }).join('');
+}
+
+function openDetail(idx) {
+  const p = policies[idx];
+  selectedIdx = idx;
+  document.getElementById('detail-name').textContent = p.name;
+  document.getElementById('detail-tags').innerHTML = p.tags.map(t => '<span class="tag tag-' + t + '">' + tagMeta[t].label + '</span>').join('');
+  document.getElementById('detail-states').textContent = p.states;
+  document.getElementById('detail-omits').textContent = p.omits;
+  document.getElementById('detail-reveals').textContent = p.reveals;
+  const panel = document.getElementById('detail-panel');
+  panel.classList.add('open');
+  setTimeout(function(){ panel.scrollIntoView({ behavior: 'smooth', block: 'nearest' }); }, 50);
+  renderCards();
+}
+
+function closeDetail() {
+  selectedIdx = null;
+  document.getElementById('detail-panel').classList.remove('open');
+  renderCards();
+}
+
+function setLayer(l) {
+  activeLayer = l;
+  closeDetail();
+  renderFilters();
+  renderCards();
+}
+
+function renderLegend() {
+  document.getElementById('legend').innerHTML = Object.keys(tagMeta).map(function(k){
+    return '<span class="tag tag-' + k + '" title="' + tagMeta[k].desc + '">' + tagMeta[k].label + ' \u2014 ' + tagMeta[k].desc + '</span>';
+  }).join('');
+}
+
+renderFilters();
+renderCards();
+renderLegend();
+</script>
+</body>
+</html>
