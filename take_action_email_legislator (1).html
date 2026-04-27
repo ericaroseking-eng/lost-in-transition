@@ -224,7 +224,7 @@ async function lookupZip() {
     var url = 'https://civicinfo.googleapis.com/civicinfo/v2/representatives?address='
       + encodeURIComponent(zip + ', New York')
       + '&levels=administrativeArea1&roles=legislatorUpperBody&roles=legislatorLowerBody'
-      + '&key=AIzaSyD-9tSrke72PouQMnMX-a7eZSW0jkFMBWY';
+
 
     var res = await fetch(url);
     var data = await res.json();
