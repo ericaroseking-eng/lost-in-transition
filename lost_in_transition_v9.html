@@ -1,0 +1,705 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Lost in Transition</title>
+<link href="https://fonts.googleapis.com/css2?family=Google+Sans:wght@400;500&family=Google+Sans+Mono:wght@300;400&display=swap" rel="stylesheet">
+<style>
+*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+:root {
+  --bg: #f5f3ef;
+  --ink: #1c1a17;
+  --mid: #6b6760;
+  --faint: #ccc9c2;
+  /* diagram block colors */
+  --sage:      #c8d5b0;
+  --sage-dk:   #3a4e22;
+  --sage-bd:   #a8b88a;
+  --mauve:     #c4b5d4;
+  --mauve-dk:  #3a2a56;
+  --mauve-bd:  #a095b8;
+  --rose:      #d4a8b0;
+  --rose-dk:   #4a1e28;
+  --rose-bd:   #b88898;
+  /* outcome colors */
+  --red:       #c0392b;
+  --teal:      #2a6b5f;
+  --gold:      #8a6a1a;
+}
+
+body {
+  background: var(--bg);
+  color: var(--ink);
+  font-family: 'Google Sans', 'Product Sans', sans-serif;
+  font-size: 17px;
+  line-height: 1.8;
+  min-height: 100vh;
+}
+
+#screen {
+  max-width: 540px;
+  margin: 0 auto;
+  padding: 5rem 2rem 7rem;
+  opacity: 0;
+  animation: appear .5s ease forwards;
+}
+
+@keyframes appear { to { opacity: 1; } }
+.fade { animation: appear .35s ease both; }
+
+.loc {
+  font-family: 'Google Sans Mono', 'Google Sans', monospace;
+  font-size: 10px;
+  font-weight: 400;
+  letter-spacing: .14em;
+  text-transform: uppercase;
+  color: var(--mid);
+  margin-bottom: 1.75rem;
+}
+
+.prose {
+  font-size: 17px;
+  line-height: 1.85;
+  color: var(--ink);
+  margin-bottom: 2rem;
+}
+
+/* stage badge — colored block from diagram palette */
+.stage-badge {
+  display: inline-block;
+  font-size: 11px;
+  font-weight: 500;
+  letter-spacing: .04em;
+  padding: 3px 10px 3px 10px;
+  border-radius: 4px;
+  margin-bottom: 1.25rem;
+}
+.badge-sage  { background: var(--sage);  color: var(--sage-dk);  border: 1px solid var(--sage-bd); }
+.badge-mauve { background: var(--mauve); color: var(--mauve-dk); border: 1px solid var(--mauve-bd); }
+.badge-rose  { background: var(--rose);  color: var(--rose-dk);  border: 1px solid var(--rose-bd); }
+
+.choices {
+  border-top: 1px solid var(--faint);
+}
+
+.choice {
+  display: block;
+  width: 100%;
+  background: none;
+  border: none;
+  border-bottom: 1px solid var(--faint);
+  padding: .85rem 0;
+  font-family: 'Google Sans', sans-serif;
+  font-size: 15.5px;
+  color: var(--mid);
+  cursor: pointer;
+  text-align: left;
+  line-height: 1.6;
+  transition: color .15s;
+}
+.choice:hover { color: var(--ink); }
+.choice.chosen { color: var(--ink); }
+.choice.unchosen { opacity: .2; cursor: default; }
+
+.reveal {
+  margin-top: 1.75rem;
+}
+
+.reveal-text {
+  font-size: 15px;
+  color: var(--mid);
+  line-height: 1.85;
+  margin-bottom: 1rem;
+}
+
+.earned {
+  font-family: 'Google Sans Mono', monospace;
+  font-size: 10px;
+  letter-spacing: .06em;
+  margin-bottom: 1.5rem;
+  color: var(--sage-dk);
+  background: var(--sage);
+  border: 1px solid var(--sage-bd);
+  display: inline-block;
+  padding: 2px 10px;
+  border-radius: 3px;
+}
+.earned.nothing {
+  color: var(--mid);
+  background: none;
+  border-color: var(--faint);
+}
+
+.next-btn {
+  background: none;
+  border: none;
+  font-family: 'Google Sans Mono', monospace;
+  font-size: 10px;
+  font-weight: 400;
+  letter-spacing: .12em;
+  text-transform: uppercase;
+  color: var(--mid);
+  cursor: pointer;
+  padding: 0;
+  transition: color .15s;
+}
+.next-btn:hover { color: var(--ink); }
+
+/* ── END ── */
+.end-loc {
+  font-family: 'Google Sans Mono', monospace;
+  font-size: 10px;
+  font-weight: 400;
+  letter-spacing: .14em;
+  text-transform: uppercase;
+  color: var(--mid);
+  margin-bottom: 1.75rem;
+}
+
+.outcome-label {
+  display: inline-block;
+  font-size: 11px;
+  font-weight: 500;
+  letter-spacing: .04em;
+  padding: 3px 10px;
+  border-radius: 4px;
+  margin-bottom: 1.25rem;
+}
+.outcome-label.none    { background: rgba(192,57,43,.1);  color: var(--red);  border: 1px solid rgba(192,57,43,.3); }
+.outcome-label.partial { background: var(--mauve); color: var(--mauve-dk); border: 1px solid var(--mauve-bd); }
+.outcome-label.full    { background: var(--sage);  color: var(--sage-dk);  border: 1px solid var(--sage-bd); }
+
+.end-head {
+  font-size: 20px;
+  line-height: 1.5;
+  margin-bottom: 1.5rem;
+  font-weight: 500;
+}
+
+.end-prose {
+  font-size: 15px;
+  color: var(--mid);
+  line-height: 1.9;
+  margin-bottom: 2.5rem;
+}
+
+/* the record */
+.record-head {
+  font-family: 'Google Sans Mono', monospace;
+  font-size: 10px;
+  font-weight: 400;
+  letter-spacing: .14em;
+  text-transform: uppercase;
+  color: var(--mid);
+  margin-bottom: 1.25rem;
+  padding-top: 2rem;
+  border-top: 1px solid var(--faint);
+}
+
+.record-rows {
+  display: flex;
+  flex-direction: column;
+  gap: 0;
+  margin-bottom: 2.5rem;
+  border-bottom: 1px solid var(--faint);
+}
+
+.record-row {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 1rem;
+  padding: .55rem 0;
+  border-top: 1px solid var(--faint);
+  font-size: 13px;
+}
+
+.record-stage { color: var(--mid); flex-shrink: 0; }
+.record-topics {
+  font-family: 'Google Sans Mono', monospace;
+  font-size: 10px;
+  text-align: right;
+  padding: 2px 8px;
+  border-radius: 3px;
+}
+.record-topics.got  { color: var(--sage-dk); background: var(--sage); border: 1px solid var(--sage-bd); }
+.record-topics.none { color: var(--mid); background: none; border: 1px solid var(--faint); }
+
+/* topic summary */
+.topics-section {
+  margin-bottom: 2.5rem;
+}
+
+.topics-head {
+  font-family: 'Google Sans Mono', monospace;
+  font-size: 10px;
+  font-weight: 400;
+  letter-spacing: .14em;
+  text-transform: uppercase;
+  color: var(--mid);
+  margin-bottom: 1rem;
+}
+
+.chips {
+  display: flex;
+  flex-wrap: wrap;
+  gap: .4rem;
+}
+
+.chip {
+  font-size: 11px;
+  font-weight: 500;
+  padding: 3px 10px;
+  border-radius: 4px;
+}
+.chip.got { color: var(--sage-dk); background: var(--sage); border: 1px solid var(--sage-bd); }
+.chip.lost { color: var(--faint); text-decoration: line-through; }
+
+/* what the system recorded */
+.system-record {
+  border-top: 1px solid var(--faint);
+  padding-top: 2rem;
+  margin-bottom: 2.5rem;
+}
+
+.system-record-head {
+  font-family: 'Google Sans Mono', monospace;
+  font-size: 10px;
+  font-weight: 400;
+  letter-spacing: .14em;
+  text-transform: uppercase;
+  color: var(--mid);
+  margin-bottom: 1.25rem;
+}
+
+.system-rows {
+  display: flex;
+  flex-direction: column;
+  gap: 0;
+  border-bottom: 1px solid var(--faint);
+  margin-bottom: 1.25rem;
+}
+
+.system-row {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 1rem;
+  padding: .55rem 0;
+  border-top: 1px solid var(--faint);
+  font-size: 13px;
+  color: var(--mid);
+}
+.system-val {
+  font-family: 'Google Sans Mono', monospace;
+  font-size: 10px;
+  text-align: right;
+  padding: 2px 8px;
+  border-radius: 3px;
+  white-space: nowrap;
+}
+.system-val.yes { color: var(--sage-dk);  background: var(--sage);  border: 1px solid var(--sage-bd); }
+.system-val.no  { color: var(--rose-dk);  background: var(--rose);  border: 1px solid var(--rose-bd); }
+.system-val.na  { color: var(--mauve-dk); background: var(--mauve); border: 1px solid var(--mauve-bd); }
+
+.gap-note {
+  font-size: 13px;
+  color: var(--mid);
+  line-height: 1.7;
+  border-left: 2px solid var(--faint);
+  padding-left: .9rem;
+  margin-bottom: 2.5rem;
+}
+
+.policy-note {
+  font-size: 14px;
+  color: var(--mid);
+  line-height: 1.85;
+  margin-bottom: 2.5rem;
+  padding: .85rem 1rem;
+  background: var(--mauve);
+  border: 1px solid var(--mauve-bd);
+  border-radius: 4px;
+  color: var(--mauve-dk);
+}
+
+.restart {
+  background: none;
+  border: none;
+  font-family: 'Google Sans Mono', monospace;
+  font-size: 10px;
+  font-weight: 400;
+  letter-spacing: .12em;
+  text-transform: uppercase;
+  color: var(--mid);
+  cursor: pointer;
+  padding: 0;
+  transition: color .15s;
+}
+.restart:hover { color: var(--ink); }
+</style>
+</head>
+<body>
+<div id="screen"></div>
+<script>
+const ALL_TOPICS = [
+  "Consent","Bodily autonomy","Healthy relationships",
+  "STI prevention","Contraception","LGBTQ+ identity",
+  "Substance use & sex","Tech & relationships","Pregnancy"
+];
+
+// record[stageId] = { label, topics: [], gap: string }
+let earned = new Set();
+let record = {};
+
+const NODES = {
+  s1: {
+    loc: "Brooklyn — Monday, 8:40 AM",
+    stageLabel: "School (DOE)",
+    prose: "You're 15. Health class. The licensed teacher left in December and wasn't replaced. A gym sub is reading from a handout.",
+    gapNote: "Health education delivery is tracked by school — not by student. When you leave this building, the record stays here.",
+    choices: [
+      {
+        text: "The sub gets through consent and STIs before the bell.",
+        earn: ["Consent","STI prevention"],
+        reveal: "You get the basics. The bell cuts her off mid-slide. She says you'll continue Wednesday.",
+        next: "s2"
+      },
+      {
+        text: "A Planned Parenthood educator is visiting. She runs the full session.",
+        earn: ["Consent","Bodily autonomy","Healthy relationships","STI prevention","Contraception","LGBTQ+ identity"],
+        reveal: "Six topics, real discussion. No record links this session to your name. The system has no way to carry it forward.",
+        next: "s2"
+      },
+      {
+        text: "The sub doesn't show. Free period.",
+        earn: [],
+        reveal: "No class. The compliance report will still show health education held this semester.",
+        next: "s2"
+      }
+    ]
+  },
+
+  s2: {
+    loc: "Brooklyn — Monday, 9:45 PM",
+    stageLabel: "Arrest & Intake (ACS)",
+    prose: "You're arrested for possession of a weapon. By Wednesday you're in ACS secure detention. The intake worker asks about your mental health, your charges, your family. She does not ask what you were studying in health class.",
+    gapNote: "SRH education status is not an intake field. The transition produces no education record.",
+    choices: [
+      {
+        text: "Thorough intake — mental health, charges, family contact.",
+        earn: [],
+        reveal: "Complete on every required field. SRH education status isn't one of them — not her omission. It isn't on the form.",
+        next: "s3"
+      },
+      {
+        text: "Rapid intake. The unit is overcrowded.",
+        earn: [],
+        reveal: "Four more intakes after yours tonight. The same overcrowding will displace your classrooms at Passages.",
+        next: "s3"
+      },
+      {
+        text: "She notices you were mid-semester and flags it in her notes.",
+        earn: [],
+        reveal: "The note exists. Nothing at Passages is built to receive or act on it.",
+        next: "s3"
+      }
+    ]
+  },
+
+  s3: {
+    loc: "ACS Secure Detention — Passages Academy",
+    stageLabel: "Secure Detention (ACS/DOE)",
+    prose: "There's a school inside the facility. Passages Academy, run by the DOE. The schedule lists Health as a course. What happens in that slot — or doesn't — leaves no required record.",
+    gapNote: "Passages Academy is excluded from the compliance reports tracking health education in traditional schools. SRH instruction is not among the 31 categories Local Law 21 requires this facility to report.",
+    choices: [
+      {
+        text: "The classroom has been converted to sleeping space. No class.",
+        earn: [],
+        reveal: "Advocates for Children documented this: overcrowding regularly displaces classrooms at Passages. The schedule still says Health.",
+        next: "s4"
+      },
+      {
+        text: "A teacher covers anatomy and pregnancy. Short session.",
+        earn: ["Pregnancy"],
+        reveal: "One topic. The hours will be logged as programming. The content won't be.",
+        next: "s4"
+      },
+      {
+        text: "A Planned Parenthood educator comes in. Two sessions.",
+        earn: ["Consent","Contraception","STI prevention","Substance use & sex"],
+        reveal: "Four topics across two visits. Their city contract doesn't require them to reach detained youth. This visit was arrangement, not mandate.",
+        next: "s4"
+      }
+    ]
+  },
+
+  s4: {
+    loc: "Non-Secure Placement — Queens",
+    stageLabel: "Placement (ACS contractor)",
+    prose: "Three weeks later you're transferred to a group home in Queens run by a contracted nonprofit. Your new caseworker has no record of what you received in secure detention. No such record was generated.",
+    gapNote: "No protocol governs the transfer of health education information at placement transition. The gap belongs to nobody.",
+    choices: [
+      {
+        text: "She gives you the ACS SRH Bill of Rights and explains your right to services.",
+        earn: ["Bodily autonomy"],
+        reveal: "The document is real. It tells you what you can access. It doesn't deliver instruction. No staff role is named to follow up.",
+        next: "s5"
+      },
+      {
+        text: "She connects you to an LGBTQ+ support group at a nearby center.",
+        earn: ["LGBTQ+ identity"],
+        reveal: "A genuine referral that reaches you. Not transferable to the next youth on her caseload.",
+        next: "s5"
+      },
+      {
+        text: "Standard intake — housing rules, curfew, court date.",
+        earn: [],
+        reveal: "Exactly what the job requires. SRH doesn't appear on the form and carries no consequence if skipped.",
+        next: "s5"
+      }
+    ]
+  },
+
+  s5: {
+    loc: "Department of Probation — PEAK Center",
+    stageLabel: "Probation (DOP)",
+    prose: "You're back in the community, reporting to a probation officer weekly. This is the longest sustained institutional contact you'll have through this entire process. It generates no SRH record.",
+    gapNote: "DOP documentation references 'health services' for youth under supervision. No document specifies SRH content, training requirements, or referral obligations for officers.",
+    choices: [
+      {
+        text: "She mentions a health workshop at the PEAK Center and tells you to attend.",
+        earn: ["Healthy relationships","Tech & relationships"],
+        reveal: "The workshop happens. Relationships and communication covered. No contraception or STI content. Curriculum is unspecified in the program description.",
+        next: "s6"
+      },
+      {
+        text: "School, curfew, next court date. Nothing else.",
+        earn: [],
+        reveal: "Her form doesn't include it. Her training didn't cover it. There's no consequence for its absence.",
+        next: "s6"
+      },
+      {
+        text: "She knows about NYC Teens Connection and gets you connected.",
+        earn: ["Consent","STI prevention","Contraception","Healthy relationships","Substance use & sex"],
+        reveal: "NYC Teens Connection lists juvenile justice settings as reachable on its website. That language isn't in its formal contract scope. This happened because she knew.",
+        next: "s6"
+      }
+    ]
+  },
+
+  s6: {
+    loc: "Young Adult Borough Center — Brooklyn",
+    stageLabel: "Alternative School (DOE/YABC)",
+    prose: "You're enrolled in a YABC — an alternative school for over-age youth. Eight months since your arrest, you're back in a DOE building. This setting is also excluded from the health education compliance reports.",
+    gapNote: "YABC programs are explicitly excluded from Local Laws 14 and 15. The reporting gap follows system-involved youth into every alternative setting they inhabit.",
+    choices: [
+      {
+        text: "Nothing formal. Credits and stability fill all the space.",
+        earn: [],
+        reveal: "No agency required SRH delivery here. No agency tracked its absence.",
+        next: "end"
+      },
+      {
+        text: "A community health center sends an educator monthly all semester.",
+        earn: ["Consent","STI prevention","Contraception","Bodily autonomy","Pregnancy","Tech & relationships"],
+        reveal: "Six topics across multiple visits. No contract obligates this partnership. It exists because two people arranged it.",
+        next: "end"
+      },
+      {
+        text: "One assembly. A health worker covers STIs and contraception.",
+        earn: ["STI prevention","Contraception"],
+        reveal: "Two topics, one visit, no follow-up. Logged as programming. Content not recorded.",
+        next: "end"
+      }
+    ]
+  },
+
+  end: { final: true }
+};
+
+// badge color per node
+const BADGE = {
+  s1: "badge-sage",   // DOE school — institutional
+  s2: "badge-rose",   // Arrest/ACS — facility
+  s3: "badge-rose",   // Secure detention — facility
+  s4: "badge-mauve",  // Placement — guardians/contractor
+  s5: "badge-sage",   // Probation — institutional
+  s6: "badge-sage",   // YABC — institutional
+};
+
+// ── RENDER ────────────────────────────────────────────────────────
+function show(id) {
+  const node = NODES[id];
+  if (node.final) { showEnd(); return; }
+
+  const s = document.getElementById("screen");
+  s.innerHTML = "";
+  s.className = "fade";
+
+  s.appendChild(mk("div","loc", node.loc));
+  const badge = mk("div", "stage-badge " + (BADGE[id] || "badge-sage"), node.stageLabel);
+  s.appendChild(badge);
+  s.appendChild(mk("div","prose", node.prose));
+
+  const cbox = document.createElement("div");
+  cbox.className = "choices";
+  node.choices.forEach(c => {
+    const btn = document.createElement("button");
+    btn.className = "choice";
+    btn.textContent = c.text;
+    btn.onclick = () => pick(btn, c, id, node, cbox, s);
+    cbox.appendChild(btn);
+  });
+  s.appendChild(cbox);
+}
+
+function pick(btn, choice, nodeId, node, cbox, s) {
+  cbox.querySelectorAll(".choice").forEach(b => {
+    b.onclick = null;
+    b.className = "choice " + (b === btn ? "chosen" : "unchosen");
+  });
+
+  const newTopics = (choice.earn || []).filter(t => !earned.has(t));
+  newTopics.forEach(t => earned.add(t));
+
+  // Log to record
+  record[nodeId] = {
+    label: node.stageLabel,
+    topics: [...newTopics],
+    gapNote: node.gapNote
+  };
+
+  const rev = document.createElement("div");
+  rev.className = "reveal fade";
+
+  rev.appendChild(mk("div","reveal-text", choice.reveal));
+
+  const earnedEl = mk("div", newTopics.length ? "earned" : "earned nothing",
+    newTopics.length ? "+ " + newTopics.join(" · ") : "Nothing recorded."
+  );
+  rev.appendChild(earnedEl);
+
+  const isEnd = NODES[choice.next] && NODES[choice.next].final;
+  const nb = mk("button","next-btn", isEnd ? "See your record →" : "Continue →");
+  nb.onclick = () => show(choice.next);
+  rev.appendChild(nb);
+
+  s.appendChild(rev);
+  rev.scrollIntoView({ behavior: "smooth", block: "nearest" });
+}
+
+function showEnd() {
+  const count = earned.size;
+  const total = ALL_TOPICS.length;
+  const oc = count >= 7 ? "full" : count >= 3 ? "partial" : "none";
+
+  const s = document.getElementById("screen");
+  s.innerHTML = "";
+  s.className = "fade";
+
+  s.appendChild(mk("div","end-loc", "End of path"));
+
+  s.appendChild(mk("div","outcome-label " + oc,
+    oc === "full" ? "Comprehensive SRH education" :
+    oc === "partial" ? "Partial SRH education" : "No SRH education"
+  ));
+
+  s.appendChild(mk("div","end-head",
+    oc === "full"
+      ? "You received something close to comprehensive SRH education. The system has no record of why."
+      : oc === "partial"
+      ? "You received fragments — some topics, at some stages. No agency was accountable for the gaps."
+      : "You moved through six institutions. No one was responsible for your SRH education."
+  ));
+
+  s.appendChild(mk("div","end-prose",
+    oc === "full"
+      ? "Your path happened to include workers who knew about resources, settings with informal partnerships, and moments where instruction wasn't crowded out. No statute required any of it. A different 15-year-old on an equally likely path received almost nothing — and no institutional record distinguishes your outcome from theirs."
+      : oc === "partial"
+      ? "Each institution satisfied its own compliance metrics. None was responsible for the whole. The topics you didn't receive aren't exceptional gaps — they're the structural default when no mandate requires continuity and no framework tracks what system-involved youth actually get."
+      : "Each institution satisfied its own compliance metrics. Your SRH education was never a required data point at any transition. No statute required continuity. No form tracked the gap. This is not an exceptional outcome — it is the default."
+  ));
+
+  // ── What you received, stage by stage ──
+  s.appendChild(mk("div","record-head", "What you received — by stage"));
+
+  const rows = document.createElement("div");
+  rows.className = "record-rows";
+  Object.values(record).forEach(r => {
+    const row = document.createElement("div");
+    row.className = "record-row";
+    const stageEl = mk("span","record-stage", r.label);
+    const topicsEl = mk("span",
+      r.topics.length ? "record-topics got" : "record-topics none",
+      r.topics.length ? r.topics.join(", ") : "none"
+    );
+    row.appendChild(stageEl);
+    row.appendChild(topicsEl);
+    rows.appendChild(row);
+  });
+  s.appendChild(rows);
+
+  // ── Topic summary ──
+  const tsec = document.createElement("div");
+  tsec.className = "topics-section";
+  tsec.appendChild(mk("div","topics-head", `Topics received (${count} of ${total})`));
+  const chips = document.createElement("div");
+  chips.className = "chips";
+  ALL_TOPICS.forEach(t => {
+    chips.appendChild(mk("span","chip " + (earned.has(t) ? "got" : "lost"), t));
+  });
+  tsec.appendChild(chips);
+  s.appendChild(tsec);
+
+  // ── What the system recorded ──
+  const sr = document.createElement("div");
+  sr.className = "system-record";
+  sr.appendChild(mk("div","system-record-head", "What the system recorded"));
+
+  const systemRows = [
+    ["Health class held this semester", "yes", "yes — at traditional school"],
+    ["SRH topics covered in detention", "na", "not a required field"],
+    ["SRH education status at placement", "na", "not transferred"],
+    ["SRH instruction logged at YABC", "na", "setting excluded from reporting"],
+    ["Agencies tracking your full SRH trajectory", "no", "0"],
+  ];
+
+  const srows = document.createElement("div");
+  srows.className = "system-rows";
+  systemRows.forEach(([label, cls, val]) => {
+    const row = document.createElement("div");
+    row.className = "system-row";
+    row.appendChild(mk("span","", label));
+    row.appendChild(mk("span","system-val " + cls, val));
+    srows.appendChild(row);
+  });
+  sr.appendChild(srows);
+
+  sr.appendChild(mk("div","gap-note",
+    "Each agency satisfied its own reporting requirements. None was required to track your SRH education across transitions. The gap is not visible in any public dataset."
+  ));
+  s.appendChild(sr);
+
+  s.appendChild(mk("div","policy-note",
+    "The Healthy and Safe Students Act has been introduced every legislative session since 2017. It has never reached a floor vote. System-involved youth are not named in its text — so they are not counted in the political cost of its continued failure."
+  ));
+
+  const rb = mk("button","restart", "Try a different path →");
+  rb.onclick = () => { earned = new Set(); record = {}; show("s1"); };
+  s.appendChild(rb);
+}
+
+function mk(tag, cls, text) {
+  const e = document.createElement(tag);
+  if (cls) e.className = cls;
+  if (text !== undefined) e.textContent = text;
+  return e;
+}
+
+show("s1");
+</script>
+</body>
+</html>
