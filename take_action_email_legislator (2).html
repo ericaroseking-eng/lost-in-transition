@@ -1,0 +1,354 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>Email Your Legislator - Lost in Transition</title>
+<link href="https://fonts.googleapis.com/css2?family=Google+Sans:wght@400;500&family=Google+Sans+Mono:wght@400;500&display=swap" rel="stylesheet" />
+<style>
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+  body { font-family: 'Google Sans', 'Product Sans', sans-serif; background: #ffffff; color: #1a1a18; padding: 2.5rem 2rem 4rem; max-width: 860px; margin: 0 auto; line-height: 1.6; }
+
+  .eyebrow { font-family: 'Google Sans Mono', monospace; font-size: 10px; text-transform: uppercase; letter-spacing: 0.12em; color: #a32d2d; margin-bottom: 10px; }
+  .title { font-size: 24px; font-weight: 500; line-height: 1.25; margin-bottom: 12px; color: #1a1a18; }
+  .blurb { font-size: 14px; color: #5f5e5a; line-height: 1.7; max-width: 620px; margin-bottom: 2rem; border-left: 2px solid #a32d2d; padding-left: 14px; }
+
+  .bill-box { background: #f6f5f2; border: 0.5px solid rgba(0,0,0,0.12); border-radius: 12px; padding: 1rem 1.25rem; margin-bottom: 1rem; display: flex; align-items: flex-start; gap: 14px; }
+  .bill-badge { font-family: 'Google Sans Mono', monospace; font-size: 11px; font-weight: 500; background: #FCEBEB; color: #791F1F; padding: 4px 10px; border-radius: 6px; white-space: nowrap; flex-shrink: 0; margin-top: 2px; }
+  .bill-text { font-size: 13px; color: #5f5e5a; line-height: 1.6; }
+  .bill-text strong { font-weight: 500; color: #1a1a18; }
+
+  .zip-section { background: #f6f5f2; border: 0.5px solid rgba(0,0,0,0.12); border-radius: 12px; padding: 1.25rem 1.5rem; margin: 1.75rem 0 1.5rem; }
+  .zip-label { font-family: 'Google Sans Mono', monospace; font-size: 10px; text-transform: uppercase; letter-spacing: 0.1em; color: #888780; margin-bottom: 10px; }
+  .zip-row { display: flex; gap: 10px; align-items: flex-end; flex-wrap: wrap; }
+  .zip-input-wrap { display: flex; flex-direction: column; gap: 4px; }
+  .zip-input-label { font-size: 11px; color: #5f5e5a; }
+  .zip-input { font-family: 'Google Sans Mono', monospace; font-size: 14px; padding: 9px 12px; border: 0.5px solid rgba(0,0,0,0.2); border-radius: 8px; background: #ffffff; color: #1a1a18; width: 140px; letter-spacing: .06em; }
+  .zip-input:focus { outline: none; border-color: #a32d2d; }
+  .zip-btn { font-family: 'Google Sans Mono', monospace; font-size: 11px; padding: 10px 18px; background: #1a1a18; color: #ffffff; border: none; border-radius: 20px; cursor: pointer; transition: opacity 0.15s; white-space: nowrap; }
+  .zip-btn:hover { opacity: 0.82; }
+  .zip-status { font-size: 13px; color: #5f5e5a; margin-top: 10px; min-height: 20px; }
+  .zip-status.found { color: #2a5c1e; }
+  .zip-status.err { color: #a32d2d; }
+
+  .sponsors-label { font-family: 'Google Sans Mono', monospace; font-size: 10px; text-transform: uppercase; letter-spacing: 0.1em; color: #888780; margin: 1.5rem 0 10px; }
+  .chamber-label { font-family: 'Google Sans Mono', monospace; font-size: 10px; text-transform: uppercase; letter-spacing: 0.08em; color: #888780; margin: 14px 0 8px; }
+  .sponsors-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(200px, 1fr)); gap: 8px; margin-bottom: 4px; }
+
+  .sponsor-card { background: #ffffff; border: 0.5px solid rgba(0,0,0,0.12); border-radius: 8px; padding: 10px 12px; cursor: pointer; transition: border-color 0.15s, background 0.15s; display: flex; align-items: center; gap: 10px; }
+  .sponsor-card:hover { border-color: rgba(0,0,0,0.28); background: #f6f5f2; }
+  .sponsor-card.selected { border-color: #a32d2d; border-width: 1px; background: #fdf6f6; }
+  .sponsor-card.your-rep { border-color: #2a6b5f; border-width: 1.5px; background: #f0f7f5; }
+  .sponsor-card.your-rep.selected { border-color: #a32d2d; background: #fdf6f6; }
+  .sponsor-initials { width: 32px; height: 32px; border-radius: 50%; background: #FCEBEB; color: #791F1F; font-family: 'Google Sans Mono', monospace; font-size: 11px; font-weight: 500; display: flex; align-items: center; justify-content: center; flex-shrink: 0; }
+  .sponsor-initials.your-rep { background: #d8ede9; color: #085041; }
+  .sponsor-name { font-size: 12px; font-weight: 500; color: #1a1a18; line-height: 1.3; }
+  .sponsor-role { font-family: 'Google Sans Mono', monospace; font-size: 10px; color: #888780; }
+  .your-rep-tag { font-family: 'Google Sans Mono', monospace; font-size: 9px; color: #085041; background: #d8ede9; padding: 1px 5px; border-radius: 3px; display: inline-block; margin-top: 2px; }
+  .show-all-btn { font-family: 'Google Sans Mono', monospace; font-size: 10px; background: none; border: 0.5px solid rgba(0,0,0,0.2); border-radius: 20px; padding: 5px 14px; color: #5f5e5a; cursor: pointer; margin-top: 12px; display: none; }
+  .show-all-btn:hover { background: #f6f5f2; }
+
+  .email-section { background: #ffffff; border: 0.5px solid rgba(0,0,0,0.12); border-radius: 12px; padding: 1.5rem; margin-top: 1.5rem; }
+  .email-section-label { font-family: 'Google Sans Mono', monospace; font-size: 10px; text-transform: uppercase; letter-spacing: 0.1em; color: #888780; margin-bottom: 1rem; }
+  .selected-indicator { font-size: 12px; color: #5f5e5a; margin-bottom: 12px; font-style: italic; }
+  .selected-indicator span { color: #a32d2d; font-style: normal; font-weight: 500; }
+  .email-fields { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-bottom: 12px; }
+  .field-group { display: flex; flex-direction: column; gap: 4px; }
+  .field-label { font-size: 11px; color: #5f5e5a; }
+  .text-input { font-family: 'Google Sans', sans-serif; font-size: 13px; padding: 8px 10px; border: 0.5px solid rgba(0,0,0,0.2); border-radius: 8px; background: #f6f5f2; color: #1a1a18; width: 100%; }
+  .text-input:focus { outline: none; border-color: #a32d2d; }
+  .email-preview { background: #f6f5f2; border: 0.5px solid rgba(0,0,0,0.1); border-radius: 8px; padding: 1rem; font-size: 12px; color: #5f5e5a; line-height: 1.7; margin-bottom: 12px; white-space: pre-wrap; font-family: 'Google Sans', sans-serif; }
+  .send-btn { font-family: 'Google Sans Mono', monospace; font-size: 12px; padding: 10px 20px; background: #1a1a18; color: #ffffff; border: none; border-radius: 20px; cursor: pointer; transition: opacity 0.15s; display: inline-flex; align-items: center; gap: 6px; }
+  .send-btn:hover { opacity: 0.82; }
+  .disclaimer { font-size: 11px; color: #888780; margin-top: 10px; line-height: 1.5; }
+</style>
+</head>
+<body>
+
+<div class="eyebrow">Take action</div>
+<div class="title">Tell your legislators to pass the Healthy and Safe Students Act</div>
+<p class="blurb">The Healthy and Safe Students Act (S6901A / A7496A) has been introduced in the New York State Legislature every session since 2017. It has broad co-sponsorship and no organized opposition, yet it has never received a floor vote. Enter your zip code to find your representative and send them a message today.</p>
+
+<div class="bill-box">
+  <span class="bill-badge">S6901A</span>
+  <div class="bill-text"><strong>Senate sponsor: Sen. Julia Salazar</strong> — co-sponsored by Brisport, Brouk, Cleare, Gianaris, Gonzalez, Gounardes, Hoylman-Sigal, Jackson, Krueger, Liu, May, Myrie, Ramos, Rivera, and Serrano. Currently in the Senate Education Committee.</div>
+</div>
+<div class="bill-box">
+  <span class="bill-badge">A7496A</span>
+  <div class="bill-text"><strong>Assembly sponsor: Assemb. Gonzalez-Rojas</strong> — co-sponsored by 50+ members including Glick, Paulin, Dinowitz, Epstein, Cruz, Simon, Rosenthal, Seawright, Hevesi, and Mamdani. Currently in the Assembly Education Committee.</div>
+</div>
+
+<div class="zip-section">
+  <div class="zip-label">Find your representative</div>
+  <div class="zip-row">
+    <div class="zip-input-wrap">
+      <div class="zip-input-label">Your New York zip code</div>
+      <input class="zip-input" id="zip-input" type="text" placeholder="e.g. 11238" maxlength="5" />
+    </div>
+    <button class="zip-btn" onclick="lookupZip()">Find my reps</button>
+  </div>
+  <div class="zip-status" id="zip-status"></div>
+</div>
+
+<div class="sponsors-label" id="sponsors-label">Bill sponsors - select one to email</div>
+<div class="chamber-label">Senate</div>
+<div class="sponsors-grid" id="senate-grid"></div>
+<div class="chamber-label">Assembly</div>
+<div class="sponsors-grid" id="assembly-grid"></div>
+<button class="show-all-btn" id="show-all-btn" onclick="showAll()">Show all sponsors</button>
+
+<div class="email-section">
+  <div class="email-section-label">Compose your message</div>
+  <div class="selected-indicator" id="selected-label">No legislator selected - choose one above</div>
+  <div class="email-fields">
+    <div class="field-group">
+      <div class="field-label">Your name</div>
+      <input class="text-input" id="sender-name" type="text" placeholder="e.g. Jane Smith" oninput="updatePreview()" />
+    </div>
+    <div class="field-group">
+      <div class="field-label">Your neighborhood (optional)</div>
+      <input class="text-input" id="sender-district" type="text" placeholder="e.g. Crown Heights, Brooklyn" oninput="updatePreview()" />
+    </div>
+  </div>
+  <div class="email-preview" id="email-preview">Select a legislator above to generate your email.</div>
+  <button class="send-btn" onclick="openEmail()">Open in email client &#x2197;</button>
+  <p class="disclaimer">This opens your default email app with the message pre-filled. You can edit before sending. No data is collected by this tool.</p>
+</div>
+
+<script>
+var senate = [
+  { name: "Julia Salazar",      role: "Lead sponsor, SD18", email: "salazar@nysenate.gov",   sd: 18 },
+  { name: "Jabari Brisport",    role: "Co-sponsor, SD25",   email: "brisport@nysenate.gov",  sd: 25 },
+  { name: "Samra Brouk",        role: "Co-sponsor, SD55",   email: "brouk@nysenate.gov",     sd: 55 },
+  { name: "Cordell Cleare",     role: "Co-sponsor, SD30",   email: "cleare@nysenate.gov",    sd: 30 },
+  { name: "Michael Gianaris",   role: "Co-sponsor, SD12",   email: "gianaris@nysenate.gov",  sd: 12 },
+  { name: "Jessica Gonzalez",   role: "Co-sponsor, SD31",   email: "gonzalez@nysenate.gov",  sd: 31 },
+  { name: "Andrew Gounardes",   role: "Co-sponsor, SD22",   email: "gounardes@nysenate.gov", sd: 22 },
+  { name: "Brad Hoylman-Sigal", role: "Co-sponsor, SD27",   email: "hoylman@nysenate.gov",   sd: 27 },
+  { name: "Robert Jackson",     role: "Co-sponsor, SD31",   email: "jackson@nysenate.gov",   sd: 31 },
+  { name: "Liz Krueger",        role: "Co-sponsor, SD28",   email: "krueger@nysenate.gov",   sd: 28 },
+  { name: "John Liu",           role: "Co-sponsor, SD16",   email: "liu@nysenate.gov",       sd: 16 },
+  { name: "Rachel May",         role: "Co-sponsor, SD53",   email: "may@nysenate.gov",       sd: 53 },
+  { name: "Zellnor Myrie",      role: "Co-sponsor, SD20",   email: "myrie@nysenate.gov",     sd: 20 },
+  { name: "Jessica Ramos",      role: "Co-sponsor, SD13",   email: "ramos@nysenate.gov",     sd: 13 },
+  { name: "Gustavo Rivera",     role: "Co-sponsor, SD33",   email: "rivera@nysenate.gov",    sd: 33 },
+  { name: "Jose Serrano",       role: "Co-sponsor, SD29",   email: "serrano@nysenate.gov",   sd: 29 },
+];
+
+var assembly = [
+  { name: "Jessica Gonzalez-Rojas", role: "Lead sponsor, AD34",  email: "gonzalezrojasj@nyassembly.gov", ad: 34 },
+  { name: "Deborah Glick",          role: "Co-sponsor, AD66",    email: "glickd@nyassembly.gov",         ad: 66 },
+  { name: "Amy Paulin",             role: "Co-sponsor, AD88",    email: "paulina@nyassembly.gov",        ad: 88 },
+  { name: "Jeffrey Dinowitz",       role: "Co-sponsor, AD81",    email: "dinowitzj@nyassembly.gov",      ad: 81 },
+  { name: "Harvey Epstein",         role: "Co-sponsor, AD74",    email: "epsteinh@nyassembly.gov",       ad: 74 },
+  { name: "Catalina Cruz",          role: "Co-sponsor, AD39",    email: "cruzc@nyassembly.gov",          ad: 39 },
+  { name: "Vivian Cook",            role: "Co-sponsor, AD32",    email: "cookv@nyassembly.gov",          ad: 32 },
+  { name: "Jo Anne Simon",          role: "Co-sponsor, AD52",    email: "simonj@nyassembly.gov",         ad: 52 },
+  { name: "Linda Rosenthal",        role: "Co-sponsor, AD67",    email: "rosenthall@nyassembly.gov",     ad: 67 },
+  { name: "Rebecca Seawright",      role: "Co-sponsor, AD76",    email: "seawrightr@nyassembly.gov",     ad: 76 },
+  { name: "Andrew Hevesi",          role: "Co-sponsor, AD28",    email: "hevesia@nyassembly.gov",        ad: 28 },
+  { name: "Zohran Mamdani",         role: "Co-sponsor, AD36",    email: "mamdaniz@nyassembly.gov",       ad: 36 },
+  { name: "Michaelle Solages",      role: "Co-sponsor, AD22",    email: "solagesm@nyassembly.gov",       ad: 22 },
+  { name: "Anna Kelles",            role: "Co-sponsor, AD125",   email: "kellesa@nyassembly.gov",        ad: 125 },
+  { name: "Pamela Hunter",          role: "Co-sponsor, AD128",   email: "hunterp@nyassembly.gov",        ad: 128 },
+  { name: "Karines Reyes",          role: "Co-sponsor, AD87",    email: "reyesk@nyassembly.gov",         ad: 87 },
+];
+
+// Curated zip to NY Senate/Assembly district map
+var zipMap = {
+  // Brooklyn
+  "11201":{"sd":25,"ad":52},"11203":{"sd":20,"ad":42},"11204":{"sd":22,"ad":48},
+  "11205":{"sd":25,"ad":57},"11206":{"sd":18,"ad":54},"11207":{"sd":20,"ad":55},
+  "11208":{"sd":20,"ad":55},"11209":{"sd":22,"ad":47},"11210":{"sd":20,"ad":41},
+  "11211":{"sd":18,"ad":50},"11212":{"sd":20,"ad":55},"11213":{"sd":20,"ad":43},
+  "11214":{"sd":22,"ad":46},"11215":{"sd":25,"ad":52},"11216":{"sd":20,"ad":57},
+  "11217":{"sd":25,"ad":52},"11218":{"sd":22,"ad":44},"11219":{"sd":22,"ad":48},
+  "11220":{"sd":17,"ad":49},"11221":{"sd":18,"ad":54},"11222":{"sd":18,"ad":50},
+  "11223":{"sd":22,"ad":46},"11224":{"sd":22,"ad":46},"11225":{"sd":20,"ad":43},
+  "11226":{"sd":20,"ad":41},"11228":{"sd":22,"ad":47},"11229":{"sd":22,"ad":46},
+  "11230":{"sd":22,"ad":44},"11231":{"sd":25,"ad":52},"11232":{"sd":17,"ad":51},
+  "11233":{"sd":20,"ad":55},"11234":{"sd":22,"ad":41},"11235":{"sd":22,"ad":45},
+  "11236":{"sd":20,"ad":41},"11237":{"sd":18,"ad":54},"11238":{"sd":20,"ad":57},
+  "11239":{"sd":20,"ad":55},
+  // Manhattan
+  "10001":{"sd":27,"ad":75},"10002":{"sd":27,"ad":65},"10003":{"sd":27,"ad":66},
+  "10004":{"sd":27,"ad":65},"10005":{"sd":27,"ad":65},"10006":{"sd":27,"ad":65},
+  "10007":{"sd":27,"ad":66},"10009":{"sd":27,"ad":74},"10010":{"sd":27,"ad":73},
+  "10011":{"sd":27,"ad":66},"10012":{"sd":27,"ad":66},"10013":{"sd":27,"ad":65},
+  "10014":{"sd":27,"ad":66},"10016":{"sd":28,"ad":73},"10017":{"sd":28,"ad":73},
+  "10018":{"sd":47,"ad":75},"10019":{"sd":47,"ad":67},"10021":{"sd":28,"ad":76},
+  "10022":{"sd":28,"ad":75},"10023":{"sd":47,"ad":67},"10024":{"sd":47,"ad":69},
+  "10025":{"sd":30,"ad":69},"10026":{"sd":30,"ad":70},"10027":{"sd":30,"ad":70},
+  "10028":{"sd":28,"ad":76},"10029":{"sd":29,"ad":68},"10030":{"sd":30,"ad":71},
+  "10031":{"sd":31,"ad":71},"10032":{"sd":31,"ad":72},"10033":{"sd":31,"ad":72},
+  "10034":{"sd":33,"ad":72},"10035":{"sd":29,"ad":68},"10036":{"sd":47,"ad":75},
+  "10037":{"sd":30,"ad":71},"10038":{"sd":27,"ad":65},"10039":{"sd":30,"ad":71},
+  "10040":{"sd":33,"ad":72},"10044":{"sd":28,"ad":76},"10065":{"sd":28,"ad":76},
+  "10075":{"sd":28,"ad":76},"10128":{"sd":28,"ad":76},
+  // Bronx
+  "10451":{"sd":33,"ad":79},"10452":{"sd":33,"ad":79},"10453":{"sd":34,"ad":83},
+  "10454":{"sd":33,"ad":85},"10455":{"sd":33,"ad":85},"10456":{"sd":34,"ad":83},
+  "10457":{"sd":34,"ad":83},"10458":{"sd":34,"ad":82},"10459":{"sd":33,"ad":84},
+  "10460":{"sd":34,"ad":84},"10461":{"sd":13,"ad":80},"10462":{"sd":34,"ad":84},
+  "10463":{"sd":34,"ad":81},"10464":{"sd":34,"ad":80},"10465":{"sd":13,"ad":80},
+  "10466":{"sd":36,"ad":87},"10467":{"sd":34,"ad":82},"10468":{"sd":34,"ad":83},
+  "10469":{"sd":36,"ad":80},"10470":{"sd":34,"ad":87},"10471":{"sd":34,"ad":81},
+  "10472":{"sd":13,"ad":84},"10473":{"sd":13,"ad":84},"10474":{"sd":33,"ad":85},
+  "10475":{"sd":36,"ad":80},
+  // Queens
+  "11101":{"sd":12,"ad":36},"11102":{"sd":12,"ad":36},"11103":{"sd":12,"ad":36},
+  "11104":{"sd":12,"ad":30},"11105":{"sd":12,"ad":36},"11106":{"sd":12,"ad":36},
+  "11354":{"sd":16,"ad":25},"11355":{"sd":16,"ad":25},"11356":{"sd":16,"ad":26},
+  "11357":{"sd":16,"ad":26},"11358":{"sd":16,"ad":26},"11360":{"sd":16,"ad":26},
+  "11361":{"sd":16,"ad":23},"11362":{"sd":16,"ad":23},"11363":{"sd":16,"ad":23},
+  "11364":{"sd":16,"ad":24},"11365":{"sd":16,"ad":24},"11366":{"sd":16,"ad":24},
+  "11367":{"sd":16,"ad":25},"11368":{"sd":13,"ad":39},"11369":{"sd":13,"ad":34},
+  "11370":{"sd":13,"ad":34},"11372":{"sd":13,"ad":34},"11373":{"sd":13,"ad":34},
+  "11374":{"sd":13,"ad":30},"11375":{"sd":16,"ad":28},"11377":{"sd":12,"ad":30},
+  "11378":{"sd":12,"ad":30},"11379":{"sd":13,"ad":30},"11385":{"sd":13,"ad":37},
+  "11411":{"sd":14,"ad":31},"11412":{"sd":14,"ad":31},"11413":{"sd":14,"ad":31},
+  "11414":{"sd":15,"ad":32},"11415":{"sd":15,"ad":28},"11416":{"sd":15,"ad":38},
+  "11417":{"sd":15,"ad":38},"11418":{"sd":15,"ad":38},"11419":{"sd":15,"ad":38},
+  "11420":{"sd":15,"ad":32},"11421":{"sd":15,"ad":38},"11422":{"sd":14,"ad":31},
+  "11423":{"sd":14,"ad":24},"11426":{"sd":14,"ad":24},"11427":{"sd":14,"ad":24},
+  "11428":{"sd":14,"ad":24},"11429":{"sd":14,"ad":31},"11432":{"sd":14,"ad":33},
+  "11433":{"sd":14,"ad":33},"11434":{"sd":14,"ad":31},"11435":{"sd":14,"ad":33},
+  "11436":{"sd":14,"ad":32},
+  // Staten Island
+  "10301":{"sd":24,"ad":61},"10302":{"sd":24,"ad":61},"10303":{"sd":24,"ad":61},
+  "10304":{"sd":24,"ad":62},"10305":{"sd":24,"ad":62},"10306":{"sd":23,"ad":63},
+  "10307":{"sd":23,"ad":63},"10308":{"sd":23,"ad":63},"10309":{"sd":23,"ad":63},
+  "10310":{"sd":24,"ad":61},"10312":{"sd":23,"ad":64},"10314":{"sd":24,"ad":61},
+};
+
+var selectedLegislator = null;
+var yourSD = null;
+var yourAD = null;
+var filteredMode = false;
+
+function initials(name) {
+  var p = name.trim().split(' ');
+  return (p[0][0] + p[p.length-1][0]).toUpperCase();
+}
+
+function isYourS(p) { return !!(yourSD && p.sd === yourSD); }
+function isYourA(p) { return !!(yourAD && p.ad === yourAD); }
+
+function renderGrid(people, containerId, filterFn, showOnly) {
+  var toShow = showOnly ? people.filter(filterFn) : people;
+  if (toShow.length === 0) {
+    document.getElementById(containerId).innerHTML =
+      '<div style="font-size:13px;color:#888780;grid-column:1/-1;padding:4px 0">No bill sponsors represent this district. You can still email any co-sponsor to show support.</div>';
+    return;
+  }
+  var html = '';
+  toShow.forEach(function(p) {
+    var realIdx = people.indexOf(p);
+    var yr = filterFn(p);
+    html += '<div class="sponsor-card' + (yr ? ' your-rep' : '') + '" id="' + containerId + '-' + realIdx + '" onclick="selectLeg(\'' + containerId + '\',' + realIdx + ')">'
+      + '<div class="sponsor-initials' + (yr ? ' your-rep' : '') + '">' + initials(p.name) + '</div>'
+      + '<div><div class="sponsor-name">' + p.name + '</div>'
+      + '<div class="sponsor-role">' + p.role + '</div>'
+      + (yr ? '<div class="your-rep-tag">your rep</div>' : '')
+      + '</div></div>';
+  });
+  document.getElementById(containerId).innerHTML = html;
+}
+
+function showAll() {
+  filteredMode = false;
+  document.getElementById('show-all-btn').style.display = 'none';
+  document.getElementById('sponsors-label').textContent = 'All bill sponsors - select one to email';
+  renderGrid(senate, 'senate-grid', isYourS, false);
+  renderGrid(assembly, 'assembly-grid', isYourA, false);
+}
+
+function lookupZip() {
+  var zip = document.getElementById('zip-input').value.trim();
+  var status = document.getElementById('zip-status');
+  if (!/^\d{5}$/.test(zip)) {
+    status.className = 'zip-status err';
+    status.textContent = 'Please enter a valid 5-digit zip code.';
+    return;
+  }
+  var match = zipMap[zip];
+  if (!match) {
+    status.className = 'zip-status err';
+    status.textContent = 'Zip code ' + zip + ' not found. Browse all sponsors below and select yours.';
+    yourSD = null; yourAD = null; filteredMode = false;
+    document.getElementById('show-all-btn').style.display = 'none';
+    document.getElementById('sponsors-label').textContent = 'All bill sponsors - select one to email';
+    renderGrid(senate, 'senate-grid', isYourS, false);
+    renderGrid(assembly, 'assembly-grid', isYourA, false);
+    return;
+  }
+  yourSD = match.sd; yourAD = match.ad;
+  var sFound = senate.filter(isYourS);
+  var aFound = assembly.filter(isYourA);
+  var total = sFound.length + aFound.length;
+  if (total > 0) {
+    status.className = 'zip-status found';
+    status.textContent = 'Found ' + total + ' bill sponsor' + (total !== 1 ? 's' : '') + ' for zip ' + zip + ' (SD' + yourSD + ' / AD' + yourAD + ').';
+    document.getElementById('sponsors-label').textContent = 'Your representatives who sponsor this bill';
+    filteredMode = true;
+    document.getElementById('show-all-btn').style.display = 'inline-block';
+    renderGrid(senate, 'senate-grid', isYourS, sFound.length > 0);
+    renderGrid(assembly, 'assembly-grid', isYourA, aFound.length > 0);
+  } else {
+    status.className = 'zip-status';
+    status.textContent = 'Your district (SD' + yourSD + ' / AD' + yourAD + ') does not have a bill sponsor yet. Email any co-sponsor to show broad support.';
+    filteredMode = false;
+    document.getElementById('show-all-btn').style.display = 'none';
+    document.getElementById('sponsors-label').textContent = 'All bill sponsors - select one to email';
+    renderGrid(senate, 'senate-grid', isYourS, false);
+    renderGrid(assembly, 'assembly-grid', isYourA, false);
+  }
+}
+
+function selectLeg(gridId, idx) {
+  document.querySelectorAll('.sponsor-card').forEach(function(c){ c.classList.remove('selected'); });
+  var card = document.getElementById(gridId + '-' + idx);
+  if (card) card.classList.add('selected');
+  selectedLegislator = gridId === 'senate-grid' ? senate[idx] : assembly[idx];
+  document.getElementById('selected-label').innerHTML = 'Emailing: <span>' + selectedLegislator.name + '</span>';
+  updatePreview();
+}
+
+function updatePreview() {
+  if (!selectedLegislator) return;
+  var name = document.getElementById('sender-name').value.trim() || '[Your name]';
+  var hood = document.getElementById('sender-district').value.trim();
+  var loc = hood ? ', a constituent from ' + hood + ',' : '';
+  var isSenate = selectedLegislator.email.indexOf('nysenate') !== -1;
+  var chamber = isSenate ? 'Senator' : 'Assembly Member';
+  var parts = selectedLegislator.name.split(' ');
+  var lastName = parts[parts.length - 1];
+
+  var text = 'Dear ' + chamber + ' ' + lastName + ',\n\n'
+    + 'My name is ' + name + loc + ' and I am writing to urge you to bring the Healthy and Safe Students Act (S6901A / A7496A) to a floor vote in the 2025 to 2026 legislative session.\n\n'
+    + 'This bill has been introduced every session since 2017. It has broad co-sponsorship and no organized opposition. What it lacks is a floor vote.\n\n'
+    + 'I am writing specifically on behalf of system-involved young people: youth in contact with New York City\'s juvenile justice and child welfare systems. When a young person moves from a public school into detention or probation supervision, they disappear from every sexual and reproductive health education compliance framework the city operates. No agency holds enforceable accountability for whether they receive instruction on consent, STI prevention, contraception, healthy relationships, or LGBTQ+ content.\n\n'
+    + 'System-involved youth are among the highest-need populations for this education and among the least likely to receive it. Passing the Healthy and Safe Students Act, with explicit language extending its requirements to alternative education, detention, and probation settings, would give system-involved youth a statutory right to comprehensive SRH education for the first time.\n\n'
+    + 'Please bring this bill to a vote.\n\n'
+    + 'Thank you for your time.\n\n'
+    + 'Sincerely,\n' + name;
+
+  document.getElementById('email-preview').textContent = text;
+}
+
+function openEmail() {
+  if (!selectedLegislator) { alert('Please select a legislator first.'); return; }
+  var subject = encodeURIComponent('Please bring the Healthy and Safe Students Act to a floor vote');
+  var body = encodeURIComponent(document.getElementById('email-preview').textContent);
+  window.location.href = 'mailto:' + selectedLegislator.email + '?subject=' + subject + '&body=' + body;
+}
+
+document.getElementById('zip-input').addEventListener('keydown', function(e){
+  if (e.key === 'Enter') lookupZip();
+});
+
+renderGrid(senate, 'senate-grid', isYourS, false);
+renderGrid(assembly, 'assembly-grid', isYourA, false);
+</script>
+</body>
+</html>
